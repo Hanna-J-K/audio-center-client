@@ -6,6 +6,7 @@ import { ss } from 'socket.io-stream';
 import './App.css'
 import AudioPlayer from './components/AudioPlayer';
 import TrackSelect from './components/TrackSelect';
+import VideoPlayer from './components/VideoPlayer';
 
 const socket = io('http://localhost:3000');
 
@@ -20,7 +21,7 @@ function App() {
     socket.emit('send_message_to_server', { message: messageToServer })
   }
 
-  const chooseTrack = (selectedTrack) => {
+  const chooseTrack = (selectedTrack:any) => {
     console.log()
     socket.emit('play_music', { filename: selectedTrack})
     console.log('track emited')
@@ -68,7 +69,7 @@ function App() {
 
   return (
     <div className="App">
-      <script src="/assets/socket.io-stream.js"></script>
+      {/* <script src="/assets/socket.io-stream.js"></script>
       <input placeholder='Type your message here...'
         onChange={(e) => setMessageToServer(e.target.value)}
       />
@@ -77,16 +78,19 @@ function App() {
         <h3>Broadcasted message from server:</h3>
         <p>{broadcastedMessage}</p>
       </div>
-      <div>
+      <div> */}
       {/* <audio id="audio" controls>
         <source src={audioSource} type="audio/mpeg" />
         Your browser does not support the audio element.
       </audio> */}
       
         {/* <button onClick={chooseTrack}>Choose</button> */}
-        <TrackSelect chooseTrack={chooseTrack} trackList={trackList} />
+        {/* <TrackSelect chooseTrack={chooseTrack} trackList={trackList} />
       </div>
-      <AudioPlayer audioSource={audioSource} audioUrl={audioUrl}/>
+      <AudioPlayer audioSource={audioSource} audioUrl={audioUrl}/> */}
+
+      <h1> VIDEO CHAT</h1>
+      <VideoPlayer />
     </div>
   )
 }
