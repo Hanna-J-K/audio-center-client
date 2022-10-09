@@ -1,6 +1,6 @@
-import React, { createContext, useState, useRef, useEffect } from 'react';
+import React, { createContext, useState, useRef, useEffect, useContext, useCallback } from 'react';
 import { io } from 'socket.io-client';
-import Peer from 'simple-peer';
+import { Peer } from "peerjs";
 
 interface ISocketContext {
   call: any;
@@ -15,6 +15,7 @@ interface ISocketContext {
   callUser: (id: string) => void,
   leaveCall: () => void,
   answerCall: () => void,
+  showVideo: (node: HTMLVideoElement) => void
 }
 
 const SocketContext = createContext({} as ISocketContext);
@@ -26,73 +27,88 @@ const ContextProvider = ({ children }: any) => {
   const [callEnded, setCallEnded] = useState(false);
   const [stream, setStream] = useState(new MediaStream());
   const [name, setName] = useState('');
-  const [call, setCall] = useState<any>();
+  const [call, setCall] = useState<any>({isReceivingCall: false, from: '', name: '', signal: ''});
   const [clientId, setClientId] = useState('');
 
-  const myVideo = useRef<HTMLVideoElement>(new HTMLVideoElement());
-  const userVideo = useRef<HTMLVideoElement>(new HTMLVideoElement());
-  const connectionRef = useRef<Peer.Instance>(new Peer);
+  const myVideo = useRef<HTMLVideoElement | null>(null);
+  const userVideo = useRef<HTMLVideoElement | null>(null);
+  const connectionRef = useRef<Peer | null>(null);
 
-  useEffect(() => {
+  const showVideo = useCallback((node: HTMLVideoElement) => {
     navigator.mediaDevices.getUserMedia({ video: true, audio: true })
       .then((currentStream) => {
+        console.log(currentStream)
         setStream(currentStream);
-
-        myVideo.current.srcObject = currentStream;
+        if(node){
+          node.srcObject = currentStream;
+        }
       });
+      myVideo.current = node;
 
     socket.on('set-client-id', (id) => setClientId(id));
 
     socket.on('call-user', ({ from, name: callerName, signal }) => {
       setCall({ isReceivingCall: true, from, name: callerName, signal });
     });
+
   }, []);
+
+  
+  useEffect(() => {
+    connectionRef.current = new Peer(clientId);
+  }, [clientId]);
 
   const answerCall = () => {
     setCallAccepted(true);
 
-    const peer = new Peer({ initiator: false, trickle: false, stream });
+    if(connectionRef.current) {
 
-    peer.on('signal', (data: any) => {
-      socket.emit('answer-call', { signal: data, to: call.from });
+      connectionRef.current.on('call', (incomingCall) => {
+      socket.emit('answer-call', { signal: incomingCall, to: call.from});
+
+      call.answer(stream);
+
+      call.on('stream', (currentStream: MediaStream) => {
+        if(userVideo.current){
+          userVideo.current.srcObject = currentStream;
+        }
     });
 
-    peer.on('stream', (currentStream: MediaStream) => {
-      userVideo.current.srcObject = currentStream;
     });
 
-    peer.signal(call.signal);
-
-    connectionRef.current = peer;
+    }
   };
 
-  const callUser = (id: any) => {
-    const peer = new Peer({ initiator: true, trickle: false, stream });
+  const callUser = useCallback((id: any) => {
 
-    peer.on('signal', (data: any) => {
-      socket.emit('call-user', { userToCall: id, signalData: data, from: clientId, name });
-    });
+    if (connectionRef.current) {
+      const call = connectionRef.current.call(id, stream)
 
-    peer.on('stream', (currentStream: any) => {
-      userVideo.current.srcObject = currentStream;
-    });
+      socket.emit('call-user', { userToCall: id, from: clientId, name });
+
+      call.on('stream', (currentStream: MediaStream) => {
+        if(userVideo.current){
+          userVideo.current.srcObject = currentStream;
+        }
+      })
 
     socket.on('call-accepted', (signal) => {
       setCallAccepted(true);
-
-      peer.signal(signal);
     });
+    }
 
-    connectionRef.current = peer;
-  };
+  }, [clientId, name, stream]);
 
   const leaveCall = () => {
     setCallEnded(true);
-
-    connectionRef.current.destroy();
+    
+    if(connectionRef.current){
+      connectionRef.current.destroy();
+    }
 
     window.location.reload();
   };
+
 
   return (
     <SocketContext.Provider value={{
@@ -108,11 +124,16 @@ const ContextProvider = ({ children }: any) => {
       callUser,
       leaveCall,
       answerCall,
+      showVideo,
     }}
     >
       {children}
     </SocketContext.Provider>
   );
 };
+
+export function useSocket() {
+  return useContext(SocketContext);
+}
 
 export { ContextProvider, SocketContext };

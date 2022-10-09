@@ -19,7 +19,7 @@ const TrackSelect = ({chooseTrack, trackList}) => {
                     <option value={track} key={track}>{track}</option>
                 ))}
             </select>
-            <button onClick={handleChooseTrack}>Choose</button>
+            <button type="button" onClick={handleChooseTrack}>Choose</button>
 
         </>
     )

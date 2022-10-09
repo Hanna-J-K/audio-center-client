@@ -7,6 +7,9 @@ import './App.css'
 import AudioPlayer from './components/AudioPlayer';
 import TrackSelect from './components/TrackSelect';
 import VideoPlayer from './components/VideoPlayer';
+import Sidebar from './components/Sidebar';
+import Notifications from './components/Notifications';
+import { ContextProvider } from './Context';
 
 const socket = io('http://localhost:3000');
 
@@ -68,6 +71,7 @@ function App() {
   
 
   return (
+    <ContextProvider>
     <div className="App">
       {/* <script src="/assets/socket.io-stream.js"></script>
       <input placeholder='Type your message here...'
@@ -91,7 +95,12 @@ function App() {
 
       <h1> VIDEO CHAT</h1>
       <VideoPlayer />
+      <Sidebar>
+        <Notifications />
+      </Sidebar>
     </div>
+    </ContextProvider>
+    
   )
 }
 
