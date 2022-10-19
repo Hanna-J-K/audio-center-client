@@ -1,0 +1,8 @@
+{
+    "proseWrap": "always",
+    "trailingComma": "all",
+    "importOrder": ["^[./]"],
+    "importOrderSortSpecifiers": true,
+    "endOfLine":"auto"
+  }
+  

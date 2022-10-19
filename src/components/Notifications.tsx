@@ -1,6 +1,6 @@
-import React, { useContext, useEffect } from 'react';
+import React from "react";
 
-import { useSocket } from '../Context';
+import { useSocket } from "../Context";
 
 const Notifications = () => {
   const { answerCall, call, callAccepted } = useSocket();
@@ -8,7 +8,7 @@ const Notifications = () => {
   return (
     <div>
       {call.isReceivingCall && !callAccepted && (
-        <div style={{ display: 'flex', justifyContent: 'space-around' }}>
+        <div style={{ display: "flex", justifyContent: "space-around" }}>
           <h1>{call.name} is calling:</h1>
           <button type="button" color="primary" onClick={answerCall}>
             Answer

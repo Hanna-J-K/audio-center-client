@@ -1,107 +1,109 @@
-import { useEffect, useState } from 'react'
-import { io } from 'socket.io-client'
-import fs from 'fs'
-// @ts-ignore
-import { ss } from 'socket.io-stream';
-import './App.css'
-import AudioPlayer from './components/AudioPlayer';
-import TrackSelect from './components/TrackSelect';
-import VideoPlayer from './components/VideoPlayer';
-import Sidebar from './components/Sidebar';
-import Notifications from './components/Notifications';
-import { ContextProvider } from './Context';
+import { useEffect, useState } from "react";
+import React from "react";
+import { io } from "socket.io-client";
+import "./App.css";
+import AudioPlayer from "./components/AudioPlayer";
+import TrackSelect from "./components/TrackSelect";
+import VideoPlayer from "./components/VideoPlayer";
+import Sidebar from "./components/Sidebar";
+import Notifications from "./components/Notifications";
+import { ContextProvider } from "./Context";
+import {
+  Grid,
+  Title,
+  Center,
+  Button,
+  Text,
+  Spoiler,
+  Stack,
+  Divider,
+} from "@mantine/core";
+import RadioPlayer from "./components/RadioPlayer";
 
-const socket = io('http://localhost:3000');
+const socket = io("http://localhost:3000");
 
 function App() {
-  const [messageToServer, setMessageToServer] = useState('')
-  const [broadcastedMessage, setBroadcastedMessage] = useState('')
-  const [audioSource, setAudioSource] = useState<ArrayBuffer>(new ArrayBuffer(0))
-  const [audioUrl, setAudioUrl] = useState('')
-  const [trackList, setTrackList] = useState<string[]>([])
+  const [audioSource, setAudioSource] = useState<ArrayBuffer>(
+    new ArrayBuffer(0)
+  );
+  const [audioUrl, setAudioUrl] = useState<string>("");
+  const [trackList, setTrackList] = useState<string[]>([]);
 
-  const sendMessageToServer = () => {
-    socket.emit('send_message_to_server', { message: messageToServer })
-  }
-
-  const chooseTrack = (selectedTrack:any) => {
-    console.log()
-    socket.emit('play_music', { filename: selectedTrack})
-    console.log('track emited')
-  }
+  const chooseTrack = (selectedTrack: any) => {
+    socket.emit("play_music", { filename: selectedTrack });
+    console.log("track emited");
+  };
 
   useEffect(() => {
-    socket.on("broadcast_message", (data) => {
-      console.log(data.message)
-      setBroadcastedMessage(data.message);
-      console.log(broadcastedMessage)
-    });
-
-    console.log('halo')
-
-    socket.on('send-track-list', trackListData => {
-      console.log(trackListData)
+    socket.on("send-track-list", (trackListData) => {
       setTrackList(trackListData);
-    })
-
-    socket.on('play-song', (trackArray:ArrayBuffer, filename:any, type) => {
-      // console.log('halo from the other side')
-  
-      // console.log(fileArray)
-      // console.log("audio source set")
-      // setAudioSource(URL.createObjectURL(fileArray));
-      // console.log("audio source set2")
-      // console.log(audioSource)
-      // const audio = document.getElementById('audio') as HTMLAudioElement;
-      // // audio.load();
-      // // audio.play();
-      // console.log(audio.src)
-
-      
-      setAudioSource(trackArray)
-      const blob = new Blob([trackArray], { type: "audio/mpeg" });
-    
-      setAudioUrl(window.URL.createObjectURL(blob))
-   
-
     });
 
-  }, [socket, audioSource, audioUrl]);
+    socket.on("play-song", (trackArray: ArrayBuffer) => {
+      setAudioSource(trackArray);
+      const blob = new Blob([trackArray], { type: "audio/mpeg" });
 
-  
+      setAudioUrl(window.URL.createObjectURL(blob));
+    });
+  }, [socket, audioSource, audioUrl]);
 
   return (
     <ContextProvider>
-    <div className="App">
-      {/* <script src="/assets/socket.io-stream.js"></script>
-      <input placeholder='Type your message here...'
-        onChange={(e) => setMessageToServer(e.target.value)}
-      />
-      <button onClick={sendMessageToServer}>Send</button>
-      <div>
-        <h3>Broadcasted message from server:</h3>
-        <p>{broadcastedMessage}</p>
-      </div>
-      <div> */}
-      {/* <audio id="audio" controls>
-        <source src={audioSource} type="audio/mpeg" />
-        Your browser does not support the audio element.
-      </audio> */}
-      
-        {/* <button onClick={chooseTrack}>Choose</button> */}
-        {/* <TrackSelect chooseTrack={chooseTrack} trackList={trackList} />
-      </div>
-      <AudioPlayer audioSource={audioSource} audioUrl={audioUrl}/> */}
+      <div className="App">
+        <Grid grow gutter="lg" justify="space-around">
+          <Grid.Col span={4}>
+            <Title order={2}>Music Player</Title>
+            <Stack>
+              <TrackSelect chooseTrack={chooseTrack} trackList={trackList} />
 
-      <h1> VIDEO CHAT</h1>
-      <VideoPlayer />
-      <Sidebar>
-        <Notifications />
-      </Sidebar>
-    </div>
+              <AudioPlayer audioSource={audioSource} audioUrl={audioUrl} />
+              <RadioPlayer />
+            </Stack>
+          </Grid.Col>
+
+          <Divider size="lg" orientation="vertical" />
+
+          <Grid.Col span={4}>
+            <Title order={2}>Podcasts</Title>
+            <Stack>
+              <VideoPlayer />
+              <Spoiler
+                maxHeight={120}
+                showLabel="Show more"
+                hideLabel="Hide"
+                transitionDuration={0}
+              >
+                <Text>
+                  Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed
+                  do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+                </Text>
+              </Spoiler>
+              <Button
+                variant="gradient"
+                gradient={{ from: "#ed6ea0", to: "#ec8c69", deg: 35 }}
+              >
+                Listen Now
+              </Button>
+            </Stack>
+            {/* <Sidebar>
+            <Notifications />
+          </Sidebar> */}
+          </Grid.Col>
+
+          <Grid.Col span={4}>
+            <Stack>
+              <audio id="audio" controls>
+                <source src={audioUrl} type="audio/mpeg" />
+                Your browser does not support the audio element.
+              </audio>
+            </Stack>
+            {/* <Title order={2}>Radio Stations</Title>
+          <RadioPlayer /> */}
+          </Grid.Col>
+        </Grid>
+      </div>
     </ContextProvider>
-    
-  )
+  );
 }
 
-export default App
+export default App;
