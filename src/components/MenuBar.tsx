@@ -1,27 +1,38 @@
-import { Navbar, Stack, Text, Center, Header, Title } from "@mantine/core";
+import {
+  Navbar,
+  Stack,
+  Text,
+  Center,
+  Header,
+  Title,
+  createStyles,
+} from "@mantine/core";
 import React from "react";
 import { SegmentedToggle } from "./SegmentedToggle";
 
+const useStyles = createStyles((theme) => ({
+  navbar: {
+    backgroundColor:
+      theme.colorScheme === "dark"
+        ? theme.colors.charcoal[6]
+        : theme.colors.charcoal[4],
+    borderColor:
+      theme.colorScheme === "dark"
+        ? theme.colors.sandyBrown[6]
+        : theme.colors.sandyBrown[1],
+    borderWidth: 5,
+    justifyContent: "space-evenly",
+  },
+}));
+
 export default function MenuBar() {
+  const { classes } = useStyles();
   return (
     <Navbar
+      className={classes.navbar}
       width={{ base: 300 }}
       height="100%"
       p="xs"
-      styles={(theme) => ({
-        root: {
-          backgroundColor:
-            theme.colorScheme === "dark"
-              ? theme.colors.charcoal[8]
-              : theme.colors.charcoal[4],
-          borderColor:
-            theme.colorScheme === "dark"
-              ? theme.colors.sandyBrown[8]
-              : theme.colors.sandyBrown[1],
-          borderWidth: 5,
-          justifyContent: "space-evenly",
-        },
-      })}
     >
       {/* <SegmentedToggle /> */}
       <Stack>

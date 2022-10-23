@@ -58,11 +58,11 @@ export const theme: MantineThemeOverride = {
       ...theme.fn.fontStyles(),
       backgroundColor:
         theme.colorScheme === "dark"
-          ? theme.colors.charcoal[8]
-          : theme.colors.charcoal[1],
+          ? theme.colors.charcoal[4]
+          : theme.colors.charcoal[0],
       color:
         theme.colorScheme === "dark"
-          ? theme.colors.persianGreen[8]
+          ? theme.colors.persianGreen[2]
           : theme.colors.persianGreen[0],
       lineHeight: theme.lineHeight,
     },
