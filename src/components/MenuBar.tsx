@@ -6,7 +6,13 @@ import {
   Header,
   Title,
   createStyles,
+  Group,
+  ActionIcon,
+  Anchor,
 } from "@mantine/core";
+import Link from "next/link";
+import { IconFolder, IconRadio, IconBroadcast } from "@tabler/icons";
+
 import React from "react";
 import { SegmentedToggle } from "./SegmentedToggle";
 
@@ -23,6 +29,38 @@ const useStyles = createStyles((theme) => ({
     borderWidth: 5,
     justifyContent: "space-evenly",
   },
+  links: {
+    marginLeft: theme.spacing.xl,
+    marginRight: theme.spacing.xl,
+    color:
+      theme.colorScheme === "dark"
+        ? theme.colors.sandyBrown[6]
+        : theme.colors.sandyBrown[0],
+
+    "&:hover": {
+      color:
+        theme.colorScheme === "dark"
+          ? theme.colors.sandyBrown[6]
+          : theme.colors.sandyBrown[2],
+      textDecoration: "none",
+    },
+  },
+
+  icon: {
+    color:
+      theme.colorScheme === "dark"
+        ? theme.colors.sandyBrown[5]
+        : theme.colors.sandyBrown[0],
+    marginRight: 0,
+    "&:hover": {
+      color:
+        theme.colorScheme === "dark"
+          ? theme.colors.sandyBrown[6]
+          : theme.colors.sandyBrown[2],
+      backgroundColor: "transparent",
+      borderColor: "transparent",
+    },
+  },
 }));
 
 export default function MenuBar() {
@@ -37,19 +75,40 @@ export default function MenuBar() {
       {/* <SegmentedToggle /> */}
       <Stack>
         <Navbar.Section my="xl">
-          <Center>
-            <Title>Catalogue</Title>
-          </Center>
+          <Link href="/" passHref>
+            <Anchor component="a" className={classes.links}>
+              <Group className={classes.links} position="left">
+                <ActionIcon className={classes.icon} size={36}>
+                  <IconFolder size={48} />
+                </ActionIcon>
+                <Title>Catalogue</Title>
+              </Group>
+            </Anchor>
+          </Link>
         </Navbar.Section>
         <Navbar.Section my="xl">
-          <Center>
-            <Title>Radio</Title>
-          </Center>
+          <Link href="/radio" passHref>
+            <Anchor component="a" className={classes.links}>
+              <Group className={classes.links} position="left">
+                <ActionIcon className={classes.icon} size={36}>
+                  <IconRadio size={48} />
+                </ActionIcon>
+                <Title>Radio</Title>
+              </Group>
+            </Anchor>
+          </Link>
         </Navbar.Section>
         <Navbar.Section my="xl">
-          <Center>
-            <Title>Broadcast</Title>
-          </Center>
+          <Link href="/broadcast" passHref>
+            <Anchor component="a" className={classes.links}>
+              <Group className={classes.links} position="left">
+                <ActionIcon className={classes.icon} size={36}>
+                  <IconBroadcast size={48} />
+                </ActionIcon>
+                <Title>Broadcast</Title>
+              </Group>
+            </Anchor>
+          </Link>
         </Navbar.Section>
       </Stack>
     </Navbar>

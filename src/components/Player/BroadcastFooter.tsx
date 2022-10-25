@@ -8,6 +8,8 @@ import {
   Stack,
   Text,
   Grid,
+  Title,
+  Container,
 } from "@mantine/core";
 import {
   IconPlayerPlay,
@@ -16,6 +18,9 @@ import {
   IconPlayerSkipBack,
   IconVolume,
   IconVolumeOff,
+  IconMusic,
+  IconPlayerRecord,
+  IconPlayerStop,
 } from "@tabler/icons";
 import React, { useState } from "react";
 
@@ -74,41 +79,59 @@ const useStyles = createStyles((theme) => ({
           : theme.colors.sandyBrown[0],
     },
   },
+  icon: {
+    color:
+      theme.colorScheme === "dark"
+        ? theme.colors.sandyBrown[5]
+        : theme.colors.sandyBrown[0],
+    marginRight: 0,
+    "&:hover": {
+      backgroundColor: "transparent",
+      borderColor: "transparent",
+    },
+  },
 }));
 
-export function PlayerFooter() {
+export function BroadcastFooter() {
   const { classes } = useStyles();
-  const [playing, setPlaying] = useState(false);
+  const [recording, setRecording] = useState(false);
   const [muted, setMuted] = useState(false);
 
   return (
     <Footer className={classes.footer} height={125}>
-      <Grid>
-        <Grid.Col span={4}>
+      <Grid style={{ justifyItems: "center" }}>
+        <Grid.Col span={4} style={{ justifyItems: "center" }}>
           <Center>
-            <Stack className={classes.track} spacing="xs">
-              <Text>Track</Text>
-              <Text>Artist</Text>
-            </Stack>
+            <Container>
+              <ActionIcon className={classes.icon} size={36}>
+                <IconMusic size={48} />
+              </ActionIcon>
+              <Title className={classes.track} order={2}>
+                Track
+              </Title>
+              <Title className={classes.track} order={2}>
+                Artist
+              </Title>
+            </Container>
           </Center>
         </Grid.Col>
         <Grid.Col span={4}>
           <Center>
-            <ActionIcon className={classes.controls} size={72}>
+            <ActionIcon disabled={true} className={classes.controls} size={72}>
               <IconPlayerSkipBack size={48} />
             </ActionIcon>
             <ActionIcon
-              onClick={() => setPlaying(!playing)}
+              onClick={() => setRecording(!recording)}
               className={classes.controls}
               size={72}
             >
-              {playing ? (
-                <IconPlayerPause size={48} />
+              {recording ? (
+                <IconPlayerStop size={48} />
               ) : (
-                <IconPlayerPlay size={48} />
+                <IconPlayerRecord size={48} />
               )}
             </ActionIcon>
-            <ActionIcon className={classes.controls} size={72}>
+            <ActionIcon disabled={true} className={classes.controls} size={72}>
               <IconPlayerSkipForward size={48} />
             </ActionIcon>
           </Center>

@@ -105,7 +105,7 @@ const ContextProvider = ({ children }: any) => {
         });
       }
     },
-    [clientId, name, stream]
+    [clientId, name, stream],
   );
 
   const leaveCall = () => {

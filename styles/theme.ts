@@ -66,5 +66,11 @@ export const theme: MantineThemeOverride = {
           : theme.colors.persianGreen[0],
       lineHeight: theme.lineHeight,
     },
+    th: {
+      color:
+        theme.colorScheme === "dark"
+          ? theme.colors.persianGreen[2]
+          : theme.colors.persianGreen[0],
+    },
   }),
 };

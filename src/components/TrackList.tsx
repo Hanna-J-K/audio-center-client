@@ -14,6 +14,11 @@ const useStyles = createStyles((theme) => ({
       theme.colorScheme === "dark"
         ? theme.colors.persianGreen[8]
         : theme.colors.persianGreen[0],
+    borderBottom: `1px solid ${
+      theme.colorScheme === "dark"
+        ? theme.colors.persianGreen[8]
+        : theme.colors.persianGreen[0]
+    }`,
     // transition: "box-shadow 150ms ease",
 
     "&::after": {
@@ -31,12 +36,23 @@ const useStyles = createStyles((theme) => ({
     },
   },
 
+  root: {
+    "& thead tr th, & tfoot tr th": {
+      color:
+        theme.colorScheme === "dark"
+          ? theme.colors.dark[0]
+          : theme.colors.gray[7],
+    },
+  },
   scrolled: {
     // boxShadow: theme.shadows.sm,
   },
 
   scrollArea: {
-    marginTop: theme.spacing.xl,
+    margin: "auto",
+    marginTop: 75,
+    height: "100%",
+    maxWidth: "75%",
   },
   table: {
     color:
@@ -52,6 +68,11 @@ const useStyles = createStyles((theme) => ({
           ? theme.colors.charcoal[8]
           : theme.colors.charcoal[4],
     },
+    borderBottom: `1px solid ${
+      theme.colorScheme === "dark"
+        ? theme.colors.persianGreen[8]
+        : theme.colors.persianGreen[0]
+    }`,
   },
 }));
 
@@ -65,33 +86,30 @@ export function TrackList({ data }: TableScrollAreaProps) {
 
   const rows = data.map((row) => (
     <tr key={row.title} className={classes.tableRow}>
-      <td>{row.title}</td>
-      <td>{row.artist}</td>
-      <td>{row.album}</td>
+      <td style={{ borderBottom: "1px solid #2a9d8f" }}>{row.title}</td>
+      <td style={{ borderBottom: "1px solid #2a9d8f" }}>{row.artist}</td>
+      <td style={{ borderBottom: "1px solid #2a9d8f" }}>{row.album}</td>
     </tr>
   ));
 
   return (
     <ScrollArea
-      sx={{ height: "100%" }}
       onScrollPositionChange={({ y }) => setScrolled(y !== 0)}
       className={classes.scrollArea}
     >
       <Table
-        sx={{ minWidth: 700 }}
-        verticalSpacing="sm"
+        verticalSpacing="md"
         fontSize="md"
-        horizontalSpacing="xs"
+        horizontalSpacing="xl"
         className={classes.table}
-        highlightOnHover
       >
         <thead className={cx(classes.header, { [classes.scrolled]: scrolled })}>
           <tr>
-            <th>
-              <Text sx={{ color: "blue " }}>Title</Text>
+            <th style={{ color: "#2a9d8f", textAlign: "center" }}>
+              <Text>Title</Text>
             </th>
-            <th>Artist</th>
-            <th>Album</th>
+            <th style={{ color: "#2a9d8f", textAlign: "center" }}>Artist</th>
+            <th style={{ color: "#2a9d8f", textAlign: "center" }}>Album</th>
           </tr>
         </thead>
         <tbody>{rows}</tbody>

@@ -10,17 +10,67 @@ import {
 import React from "react";
 
 const useStyles = createStyles((theme) => ({
-  searchBar: {
+  dropdown: {
     backgroundColor:
       theme.colorScheme === "dark"
         ? theme.colors.charcoal[6]
         : theme.colors.charcoal[4],
+    borderWidth: 1,
     borderColor:
       theme.colorScheme === "dark"
         ? theme.colors.sandyBrown[6]
         : theme.colors.sandyBrown[1],
-    borderWidth: 5,
     justifyContent: "space-evenly",
+  },
+
+  item: {
+    color:
+      theme.colorScheme === "dark"
+        ? theme.colors.sandyBrown[6]
+        : theme.colors.sandyBrown[1],
+    fontSize: theme.fontSizes.md,
+    fontWeight: 600,
+
+    "&:hover": {
+      backgroundColor:
+        theme.colorScheme === "dark"
+          ? theme.colors.persianGreen[6]
+          : theme.colors.persianGreen[4],
+    },
+  },
+
+  root: {
+    marginLeft: "10%",
+    marginRight: "10%",
+    marginTop: "5%",
+  },
+
+  input: {
+    marginBottom: theme.spacing.xl,
+    padding: theme.spacing.xl,
+    borderRadius: theme.radius.lg,
+    backgroundColor:
+      theme.colorScheme === "dark"
+        ? theme.colors.sandyBrown[6]
+        : theme.colors.sandyBrown[1],
+    color:
+      theme.colorScheme === "dark"
+        ? theme.colors.charcoal[8]
+        : theme.colors.charcoal[1],
+    borderColor:
+      theme.colorScheme === "dark"
+        ? theme.colors.charcoal[8]
+        : theme.colors.charcoal[2],
+    borderWidth: 2,
+    fontWeight: 700,
+    fontSize: theme.fontSizes.md,
+    "&::placeholder": {
+      color:
+        theme.colorScheme === "dark"
+          ? theme.colors.charcoal[8]
+          : theme.colors.charcoal[0],
+      opacity: 0.65,
+    },
   },
 }));
 
@@ -40,7 +90,7 @@ export function SearchBar({ data }: SearchBarProps) {
   const AutoCompleteItem = forwardRef<HTMLDivElement, ItemProps>(
     ({ artist, value, ...others }: ItemProps, ref) => (
       <div ref={ref} {...others}>
-        <Group className={classes.searchBar} noWrap>
+        <Group noWrap>
           <div>
             <Text>{value}</Text>
             <Text size="xs" color="dimmed">
@@ -49,15 +99,19 @@ export function SearchBar({ data }: SearchBarProps) {
           </div>
         </Group>
       </div>
-    )
+    ),
   );
 
   const searchData = data.map((item) => ({ ...item, value: item.title }));
   return (
     <Autocomplete
-      className={classes.searchBar}
-      label="Choose employee of the month"
-      placeholder="Pick one"
+      classNames={{
+        dropdown: classes.dropdown,
+        item: classes.item,
+        input: classes.input,
+        root: classes.root,
+      }}
+      placeholder="Search for more music..."
       itemComponent={AutoCompleteItem}
       data={searchData}
       filter={(value, item) =>
