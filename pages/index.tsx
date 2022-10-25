@@ -1,6 +1,7 @@
 import React from "react";
 import { SearchBar } from "../src/components/SearchBar";
 import { TrackList } from "../src/components/TrackList";
+import { PlayerFooter } from "../src/components/Player/PlayerFooter";
 
 const trackListData = [
   { title: "Track 1", artist: "Artist 1", album: "Album 1" },
@@ -75,6 +76,7 @@ export default function index() {
     <div>
       <SearchBar data={searchTrackData} />
       <TrackList data={trackListData} />
+      <PlayerFooter />
     </div>
   );
 }

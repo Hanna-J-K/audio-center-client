@@ -11,10 +11,7 @@ interface LayoutProps {
 export default function Layout({ children }: LayoutProps) {
   const { asPath } = useRouter();
   return (
-    <AppShell
-      navbar={<MenuBar />}
-      footer={asPath === "/broadcast" ? <BroadcastFooter /> : <PlayerFooter />}
-    >
+    <AppShell navbar={<MenuBar />}>
       <div className="App">{children}</div>
     </AppShell>
   );

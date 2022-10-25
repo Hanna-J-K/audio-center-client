@@ -1,4 +1,5 @@
 import React from "react";
+import { PlayerFooter } from "../src/components/Player/PlayerFooter";
 import { ProgramTiles } from "../src/components/ProgramTiles";
 import { RadioStationBrowser } from "../src/components/RadioStationBrowser";
 export default function radio() {
@@ -6,6 +7,7 @@ export default function radio() {
     <>
       <ProgramTiles />
       <RadioStationBrowser />
+      <PlayerFooter />
     </>
   );
 }
