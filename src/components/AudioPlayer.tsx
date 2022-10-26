@@ -35,7 +35,7 @@ const AudioPlayer = ({ audioSource, audioUrl }: IAudioPlayerProps) => {
       },
       (e) => {
         `Error with decoding audio data ${e}`;
-      }
+      },
     );
     console.log("source poza decode");
     console.log(source);

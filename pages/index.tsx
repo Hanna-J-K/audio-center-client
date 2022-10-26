@@ -1,8 +1,10 @@
-import React from "react";
-import { SearchBar } from "../src/components/SearchBar";
+import React, { useEffect, useState, useContext } from "react";
+import { SearchBar, useTrackContext } from "../src/components/SearchBar";
 import { TrackList } from "../src/components/TrackList";
 import { PlayerFooter } from "../src/components/Player/PlayerFooter";
+import { io } from "socket.io-client";
 
+let socket;
 const trackListData = [
   { title: "Track 1", artist: "Artist 1", album: "Album 1" },
   { title: "Track 2", artist: "Artist 2", album: "Album 2" },
@@ -27,55 +29,41 @@ const trackListData = [
   { title: "Track 21", artist: "Artist 21", album: "Album 21" },
 ];
 
-const searchTrackData = [
-  { title: "Cry For Me", artist: "Twice", album: "Cry For Me" },
-  {
-    title: "Dance The Night Away",
-    artist: "Twice",
-    album: "Dance The Night Away",
-  },
-  { title: "Feel Special", artist: "Twice", album: "Feel Special" },
-  { title: "Fancy", artist: "Twice", album: "Fancy" },
-  { title: "Heart Shaker", artist: "Twice", album: "Heart Shaker" },
-  { title: "Likey", artist: "Twice", album: "Likey" },
-  { title: "Like Ooh-Ahh", artist: "Twice", album: "Like Ooh-Ahh" },
-  { title: "Signal", artist: "Twice", album: "Signal" },
-  { title: "TT", artist: "Twice", album: "TT" },
-  { title: "What Is Love", artist: "Twice", album: "What Is Love" },
-  { title: "Yes Or Yes", artist: "Twice", album: "Yes Or Yes" },
-  { title: "Cheer Up", artist: "Twice", album: "Cheer Up" },
-  { title: "Knock Knock", artist: "Twice", album: "Knock Knock" },
-  { title: "Merry & Happy", artist: "Twice", album: "Merry & Happy" },
-  { title: "One More Time", artist: "Twice", album: "One More Time" },
-  { title: "OOH-AHH하게", artist: "Twice", album: "OOH-AHH하게" },
-  { title: "SIGNAL", artist: "Twice", album: "SIGNAL" },
-  { title: "TT", artist: "Twice", album: "TT" },
-  { title: "What Is Love", artist: "Twice", album: "What Is Love" },
-  { title: "Yes Or Yes", artist: "Twice", album: "Yes Or Yes" },
-  { title: "DDU-DU-DDU-DU", artist: "Blackpink", album: "Square Uo" },
-  { title: "Kill This Love", artist: "Blackpink", album: "Kill This Love" },
-  {
-    title: "How You Like That",
-    artist: "Blackpink",
-    album: "How You Like That",
-  },
-  { title: "Ice Cream", artist: "Blackpink", album: "Ice Cream" },
-  { title: "Icy", artist: "ITZY", album: "Icy" },
-  { title: "ICY", artist: "ITZY", album: "ICY" },
-  { title: "Dalla Dalla", artist: "ITZY", album: "Dalla Dalla" },
-  { title: "Not Shy", artist: "ITZY", album: "Not Shy" },
-  { title: "Wannabe", artist: "ITZY", album: "Wannabe" },
-  { title: "HIP", artist: "Mamamoo", album: "HIP" },
-  { title: "Egotistic", artist: "Mamamoo", album: "Egotistic" },
-  { title: "Starry Night", artist: "Mamamoo", album: "Starry Night" },
-  { title: "Wind Flower", artist: "Mamamoo", album: "Wind Flower" },
-];
+interface ITrackPlaylistData {
+  title: string;
+  artist: string;
+  album: string;
+}
 
 export default function index() {
+  const [searchTrackData, setSearchTrackData] = useState(trackListData);
+  const [trackPlaylistData, setTrackPlaylistData] = useState<
+    Array<ITrackPlaylistData>
+  >([]);
+
+  useEffect(() => {
+    socket = io("http://localhost:3000");
+    console.log("csa");
+    console.log("agshioew");
+    socket.emit("get-track-list");
+    socket.on("send-track-list", (data) => {
+      setSearchTrackData(data);
+    });
+    console.log("halo");
+    socket.on("send-track-info", (data) => {
+      setTrackPlaylistData((prev) => [...prev, data]);
+    });
+
+    return () => {
+      socket.off("send-track-list");
+      socket.off("send-track-info");
+    };
+  }, []);
+
   return (
     <div>
       <SearchBar data={searchTrackData} />
-      <TrackList data={trackListData} />
+      <TrackList data={trackPlaylistData} />
       <PlayerFooter />
     </div>
   );

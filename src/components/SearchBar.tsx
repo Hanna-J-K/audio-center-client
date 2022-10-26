@@ -1,4 +1,10 @@
-import { forwardRef } from "react";
+import {
+  forwardRef,
+  useState,
+  createContext,
+  useContext,
+  useEffect,
+} from "react";
 import {
   Group,
   Text,
@@ -8,6 +14,24 @@ import {
   createStyles,
 } from "@mantine/core";
 import React from "react";
+import { io } from "socket.io-client";
+
+const socket = io("http://localhost:3000");
+
+interface ITrackContext {
+  trackInfo: {
+    title: string;
+    artist: string;
+    album: string;
+  };
+  setTrackInfo: (track: {
+    title: string;
+    artist: string;
+    album: string;
+  }) => void;
+}
+
+const TrackContext = createContext({} as ITrackContext);
 
 const useStyles = createStyles((theme) => ({
   dropdown: {
@@ -85,6 +109,11 @@ interface SearchBarProps {
 
 export function SearchBar({ data }: SearchBarProps) {
   const { classes } = useStyles();
+  const [trackInfo, setTrackInfo] = useState({
+    title: "",
+    artist: "",
+    album: "",
+  });
 
   // eslint-disable-next-line react/display-name
   const AutoCompleteItem = forwardRef<HTMLDivElement, ItemProps>(
@@ -104,20 +133,30 @@ export function SearchBar({ data }: SearchBarProps) {
 
   const searchData = data.map((item) => ({ ...item, value: item.title }));
   return (
-    <Autocomplete
-      classNames={{
-        dropdown: classes.dropdown,
-        item: classes.item,
-        input: classes.input,
-        root: classes.root,
-      }}
-      placeholder="Search for more music..."
-      itemComponent={AutoCompleteItem}
-      data={searchData}
-      filter={(value, item) =>
-        item.value.toLowerCase().includes(value.toLowerCase().trim()) ||
-        item.artist.toLowerCase().includes(value.toLowerCase().trim())
-      }
-    />
+    <TrackContext.Provider value={{ trackInfo, setTrackInfo }}>
+      <Autocomplete
+        classNames={{
+          dropdown: classes.dropdown,
+          item: classes.item,
+          input: classes.input,
+          root: classes.root,
+        }}
+        placeholder="Search for more music..."
+        itemComponent={AutoCompleteItem}
+        data={searchData}
+        filter={(value, item) =>
+          item.value.toLowerCase().includes(value.toLowerCase().trim()) ||
+          item.artist.toLowerCase().includes(value.toLowerCase().trim())
+        }
+        onItemSubmit={(item) => {
+          socket.emit("search-for-track", item.title);
+        }}
+        nothingFound="There seems to be nothing here matching your search..."
+      />
+    </TrackContext.Provider>
   );
+}
+
+export function useTrackContext() {
+  return useContext(TrackContext);
 }

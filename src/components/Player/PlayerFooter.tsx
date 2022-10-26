@@ -1,12 +1,8 @@
 import {
   createStyles,
-  Anchor,
-  Group,
   ActionIcon,
   Footer,
   Center,
-  Stack,
-  Text,
   Grid,
   Title,
   Container,

@@ -81,6 +81,8 @@ interface TableScrollAreaProps {
 }
 
 export function TrackList({ data }: TableScrollAreaProps) {
+  console.log("please work");
+  console.log(data);
   const { classes, cx } = useStyles();
   const [scrolled, setScrolled] = useState(false);
 
@@ -105,11 +107,11 @@ export function TrackList({ data }: TableScrollAreaProps) {
       >
         <thead className={cx(classes.header, { [classes.scrolled]: scrolled })}>
           <tr>
-            <th style={{ color: "#2a9d8f", textAlign: "center" }}>
+            <th style={{ color: "#2a9d8f" }}>
               <Text>Title</Text>
             </th>
-            <th style={{ color: "#2a9d8f", textAlign: "center" }}>Artist</th>
-            <th style={{ color: "#2a9d8f", textAlign: "center" }}>Album</th>
+            <th style={{ color: "#2a9d8f" }}>Artist</th>
+            <th style={{ color: "#2a9d8f" }}>Album</th>
           </tr>
         </thead>
         <tbody>{rows}</tbody>

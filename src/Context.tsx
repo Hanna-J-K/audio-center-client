@@ -27,7 +27,7 @@ interface ISocketContext {
 
 const SocketContext = createContext({} as ISocketContext);
 
-const socket = io("http://localhost:3000");
+// const socket = io("http://localhost:3000");
 
 const ContextProvider = ({ children }: any) => {
   const [callAccepted, setCallAccepted] = useState(false);
@@ -58,33 +58,33 @@ const ContextProvider = ({ children }: any) => {
       });
     myVideo.current = node;
 
-    socket.on("set-client-id", (id) => setClientId(id));
+    // socket.on("set-client-id", (id) => setClientId(id));
 
-    socket.on("call-user", ({ from, name: callerName, signal }) => {
-      setCall({ isReceivingCall: true, from, name: callerName, signal });
-    });
+    // socket.on("call-user", ({ from, name: callerName, signal }) => {
+    //   setCall({ isReceivingCall: true, from, name: callerName, signal });
+    // });
   }, []);
 
   useEffect(() => {
-    connectionRef.current = new Peer(clientId);
+    // connectionRef.current = new Peer(clientId);
   }, [clientId]);
 
   const answerCall = () => {
     setCallAccepted(true);
 
-    if (connectionRef.current) {
-      connectionRef.current.on("call", (incomingCall) => {
-        socket.emit("answer-call", { signal: incomingCall, to: call.from });
+    // if (connectionRef.current) {
+    //   connectionRef.current.on("call", (incomingCall) => {
+    //     socket.emit("answer-call", { signal: incomingCall, to: call.from });
 
-        call.answer(stream);
+    //     call.answer(stream);
 
-        call.on("stream", (currentStream: MediaStream) => {
-          if (userVideo.current) {
-            userVideo.current.srcObject = currentStream;
-          }
-        });
-      });
-    }
+    //     call.on("stream", (currentStream: MediaStream) => {
+    //       if (userVideo.current) {
+    //         userVideo.current.srcObject = currentStream;
+    //       }
+    //     });
+    //   });
+    // }
   };
 
   const callUser = useCallback(
@@ -92,7 +92,7 @@ const ContextProvider = ({ children }: any) => {
       if (connectionRef.current) {
         const call = connectionRef.current.call(id, stream);
 
-        socket.emit("call-user", { userToCall: id, from: clientId, name });
+        // socket.emit("call-user", { userToCall: id, from: clientId, name });
 
         call.on("stream", (currentStream: MediaStream) => {
           if (userVideo.current) {
@@ -100,9 +100,9 @@ const ContextProvider = ({ children }: any) => {
           }
         });
 
-        socket.on("call-accepted", (signal) => {
-          setCallAccepted(true);
-        });
+        // socket.on("call-accepted", (signal) => {
+        //   setCallAccepted(true);
+        // });
       }
     },
     [clientId, name, stream],
