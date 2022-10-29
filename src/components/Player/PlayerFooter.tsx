@@ -17,6 +17,7 @@ import {
   IconMusic,
 } from "@tabler/icons";
 import React, { useState } from "react";
+import { useAudio } from "../AudioPlayerContext";
 
 const useStyles = createStyles((theme) => ({
   footer: {
@@ -90,6 +91,8 @@ export function PlayerFooter() {
   const { classes } = useStyles();
   const [playing, setPlaying] = useState(false);
   const [muted, setMuted] = useState(false);
+  const { playTrack, playTrackDisabled, stopTrack, stopTrackDisabled } =
+    useAudio();
 
   return (
     <Footer className={classes.footer} height={125}>
@@ -120,9 +123,9 @@ export function PlayerFooter() {
               size={72}
             >
               {playing ? (
-                <IconPlayerPause size={48} />
+                <IconPlayerPause onClick={stopTrack} size={48} />
               ) : (
-                <IconPlayerPlay size={48} />
+                <IconPlayerPlay onClick={playTrack} size={48} />
               )}
             </ActionIcon>
             <ActionIcon className={classes.controls} size={72}>

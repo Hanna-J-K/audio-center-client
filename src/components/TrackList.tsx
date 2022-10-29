@@ -81,8 +81,6 @@ interface TableScrollAreaProps {
 }
 
 export function TrackList({ data }: TableScrollAreaProps) {
-  console.log("please work");
-  console.log(data);
   const { classes, cx } = useStyles();
   const [scrolled, setScrolled] = useState(false);
 

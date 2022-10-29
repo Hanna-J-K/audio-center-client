@@ -104,7 +104,7 @@ interface ItemProps extends SelectItemProps {
 }
 
 interface SearchBarProps {
-  data: { title: string; artist: string; album: string }[];
+  data: { id: string; title: string; artist: string; album: string }[];
 }
 
 export function SearchBar({ data }: SearchBarProps) {
@@ -115,7 +115,6 @@ export function SearchBar({ data }: SearchBarProps) {
     album: "",
   });
 
-  // eslint-disable-next-line react/display-name
   const AutoCompleteItem = forwardRef<HTMLDivElement, ItemProps>(
     ({ artist, value, ...others }: ItemProps, ref) => (
       <div ref={ref} {...others}>
@@ -130,6 +129,8 @@ export function SearchBar({ data }: SearchBarProps) {
       </div>
     ),
   );
+
+  AutoCompleteItem.displayName = "AutoCompleteItem";
 
   const searchData = data.map((item) => ({ ...item, value: item.title }));
   return (
@@ -149,7 +150,7 @@ export function SearchBar({ data }: SearchBarProps) {
           item.artist.toLowerCase().includes(value.toLowerCase().trim())
         }
         onItemSubmit={(item) => {
-          socket.emit("search-for-track", item.title);
+          socket.emit("search-for-track", item.id);
         }}
         nothingFound="There seems to be nothing here matching your search..."
       />
