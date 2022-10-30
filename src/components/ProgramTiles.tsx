@@ -31,7 +31,9 @@ export function ProgramTiles() {
   const SECONDARY_COL_HEIGHT = PRIMARY_COL_HEIGHT / 2 - theme.spacing.md / 2;
   return (
     <Container my="md">
-      <Title className={classes.grid} order={2}>Recommended channels</Title>
+      <Title className={classes.grid} order={2}>
+        Recommended channels
+      </Title>
       <SimpleGrid
         cols={2}
         spacing="md"

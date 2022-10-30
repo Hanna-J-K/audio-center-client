@@ -2,7 +2,7 @@ import React, { useState } from "react";
 
 import { useSocket } from "../Context";
 
-const Sidebar = ({ children }) => {
+const Sidebar = ({ children }: any) => {
   const {
     clientId,
     callAccepted,

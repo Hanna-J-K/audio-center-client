@@ -1,19 +1,13 @@
 import {
   createStyles,
-  Anchor,
-  Group,
   ActionIcon,
   Footer,
   Center,
-  Stack,
-  Text,
   Grid,
   Title,
   Container,
 } from "@mantine/core";
 import {
-  IconPlayerPlay,
-  IconPlayerPause,
   IconPlayerSkipForward,
   IconPlayerSkipBack,
   IconVolume,

@@ -1,9 +1,6 @@
 import {
   Navbar,
   Stack,
-  Text,
-  Center,
-  Header,
   Title,
   createStyles,
   Group,
@@ -14,7 +11,6 @@ import Link from "next/link";
 import { IconFolder, IconRadio, IconBroadcast } from "@tabler/icons";
 
 import React from "react";
-import { SegmentedToggle } from "./SegmentedToggle";
 
 const useStyles = createStyles((theme) => ({
   navbar: {

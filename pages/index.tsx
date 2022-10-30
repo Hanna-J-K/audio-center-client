@@ -1,20 +1,9 @@
-import React, { useEffect, useState, useContext } from "react";
-import { SearchBar, useTrackContext } from "../src/components/SearchBar";
+import React, { useEffect, useState } from "react";
+import { SearchBar } from "../src/components/SearchBar";
 import { TrackList } from "../src/components/TrackList";
 import { PlayerFooter } from "../src/components/Player/PlayerFooter";
-import { io } from "socket.io-client";
-import dynamic from "next/dynamic";
+import { socket } from "../src/components/AudioPlayerContext";
 import { useAudio } from "../src/components/AudioPlayerContext";
-
-const DynamicContextProvider = dynamic(
-  () =>
-    import("../src/components/AudioPlayerContext").then(
-      (mod) => mod.AudioContextProvider,
-    ),
-  {
-    ssr: false,
-  },
-);
 
 interface ITrackPlaylistData {
   id: string;
@@ -23,10 +12,9 @@ interface ITrackPlaylistData {
   album: string;
 }
 
-const socket = io("http://localhost:3000");
-
 export default function IndexPage() {
-  const { setAudioSource, setAudioUrl } = useAudio();
+  const { setAudioSource, queue, setQueue, trackId, setTrackId, source } =
+    useAudio();
   const [searchTrackData, setSearchTrackData] = useState<
     Array<ITrackPlaylistData>
   >([]);
@@ -45,20 +33,28 @@ export default function IndexPage() {
     socket.on("send-track-info", (data) => {
       setTrackPlaylistData((prev) => [...prev, data]);
     });
-
-    socket.on("send-song", (...data) => {
-      console.log("data", data);
-      setAudioSource(data[0]);
-      console.log("audioSource w sockecie");
-      setAudioUrl(data[1]);
-    });
+    socket.on(
+      "send-song",
+      ({
+        trackArray,
+        trackFilename,
+        id,
+      }: {
+        trackArray: ArrayBuffer;
+        trackFilename: string;
+        id: string;
+      }) => {
+        setAudioSource(trackArray);
+        setQueue([...queue, id]);
+      },
+    );
 
     return () => {
       socket.off("send-track-list");
       socket.off("send-track-info");
       socket.off("send-song");
     };
-  }, [setAudioSource, setAudioUrl]);
+  }, [setAudioSource, queue, setQueue]);
 
   return (
     <div>

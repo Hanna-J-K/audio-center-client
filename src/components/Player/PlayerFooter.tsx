@@ -6,6 +6,7 @@ import {
   Grid,
   Title,
   Container,
+  Slider,
 } from "@mantine/core";
 import {
   IconPlayerPlay,
@@ -85,14 +86,28 @@ const useStyles = createStyles((theme) => ({
       borderColor: "transparent",
     },
   },
+  volumeSlider: {
+    width: 100,
+    color:
+      theme.colorScheme === "dark"
+        ? theme.colors.sandyBrown[5]
+        : theme.colors.sandyBrown[0],
+  },
 }));
 
 export function PlayerFooter() {
   const { classes } = useStyles();
-  const [playing, setPlaying] = useState(false);
   const [muted, setMuted] = useState(false);
-  const { playTrack, playTrackDisabled, stopTrack, stopTrackDisabled } =
-    useAudio();
+  const {
+    playTrack,
+    stopTrack,
+    playing,
+    setPlaying,
+    setVolume,
+    volume,
+    playNextTrack,
+    playPreviousTrack,
+  } = useAudio();
 
   return (
     <Footer className={classes.footer} height={125}>
@@ -115,7 +130,7 @@ export function PlayerFooter() {
         <Grid.Col span={4}>
           <Center>
             <ActionIcon className={classes.controls} size={72}>
-              <IconPlayerSkipBack size={48} />
+              <IconPlayerSkipBack onClick={playPreviousTrack} size={48} />
             </ActionIcon>
             <ActionIcon
               onClick={() => setPlaying(!playing)}
@@ -129,19 +144,34 @@ export function PlayerFooter() {
               )}
             </ActionIcon>
             <ActionIcon className={classes.controls} size={72}>
-              <IconPlayerSkipForward size={48} />
+              <IconPlayerSkipForward onClick={playNextTrack} size={48} />
             </ActionIcon>
           </Center>
         </Grid.Col>
         <Grid.Col span={4}>
           <Center>
             <ActionIcon
-              onClick={() => setMuted(!muted)}
+              onClick={() => {
+                setMuted(!muted);
+                if (muted) {
+                  setVolume(0);
+                } else {
+                  setVolume(volume);
+                }
+              }}
               className={classes.controls}
               size={72}
             >
               {muted ? <IconVolumeOff size={48} /> : <IconVolume size={48} />}
             </ActionIcon>
+            <Slider
+              defaultValue={volume}
+              min={0}
+              max={2}
+              step={0.01}
+              className={classes.volumeSlider}
+              onChange={(value) => setVolume(value)}
+            />
           </Center>
         </Grid.Col>
       </Grid>
