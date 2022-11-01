@@ -83,6 +83,18 @@ export default function MenuBar() {
           </Link>
         </Navbar.Section>
         <Navbar.Section my="xl">
+          <Link href="/library" passHref>
+            <Anchor component="a" className={classes.links}>
+              <Group className={classes.links} position="left">
+                <ActionIcon className={classes.icon} size={36}>
+                  <IconFolder size={48} />
+                </ActionIcon>
+                <Title>Library</Title>
+              </Group>
+            </Anchor>
+          </Link>
+        </Navbar.Section>
+        <Navbar.Section my="xl">
           <Link href="/radio" passHref>
             <Anchor component="a" className={classes.links}>
               <Group className={classes.links} position="left">
