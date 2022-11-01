@@ -1,6 +1,13 @@
 import { useState } from "react";
-import { createStyles, Table, ScrollArea, Text } from "@mantine/core";
+import {
+  createStyles,
+  Table,
+  ScrollArea,
+  Text,
+  ActionIcon,
+} from "@mantine/core";
 import React from "react";
+import { IconDeviceFloppy } from "@tabler/icons";
 
 const useStyles = createStyles((theme) => ({
   header: {
@@ -77,18 +84,27 @@ const useStyles = createStyles((theme) => ({
 }));
 
 interface TableScrollAreaProps {
-  data: { title: string; artist: string; album: string }[];
+  data: { id: string; title: string; artist: string; album: string }[];
 }
 
 export function TrackList({ data }: TableScrollAreaProps) {
   const { classes, cx } = useStyles();
   const [scrolled, setScrolled] = useState(false);
+  const [savedToLibrary, setSavedToLibrary] = useState(false);
 
   const rows = data.map((row) => (
     <tr key={row.title} className={classes.tableRow}>
       <td style={{ borderBottom: "1px solid #2a9d8f" }}>{row.title}</td>
       <td style={{ borderBottom: "1px solid #2a9d8f" }}>{row.artist}</td>
       <td style={{ borderBottom: "1px solid #2a9d8f" }}>{row.album}</td>
+      <td style={{ borderBottom: "1px solid #2a9d8f" }}>
+        <ActionIcon
+          onClick={() => setSavedToLibrary(!savedToLibrary)}
+          variant={savedToLibrary ? "filled" : "outline"}
+        >
+          <IconDeviceFloppy />
+        </ActionIcon>
+      </td>
     </tr>
   ));
 
@@ -110,6 +126,7 @@ export function TrackList({ data }: TableScrollAreaProps) {
             </th>
             <th style={{ color: "#2a9d8f" }}>Artist</th>
             <th style={{ color: "#2a9d8f" }}>Album</th>
+            <th style={{ color: "#2a9d8f" }}></th>
           </tr>
         </thead>
         <tbody>{rows}</tbody>

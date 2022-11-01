@@ -15,6 +15,7 @@
     "@mantine/form": "^5.5.4",
     "@mantine/hooks": "^5.5.4",
     "@tabler/icons": "^1.101.0",
+    "@types/uuid": "^8.3.4",
     "fs": "^0.0.1-security",
     "next": "^12.3.1",
     "peerjs": "^1.4.7",
@@ -24,7 +25,8 @@
     "simple-peer": "^9.11.1",
     "socket.io": "^4.5.2",
     "socket.io-client": "^4.5.2",
-    "socket.io-stream": "^0.9.1"
+    "socket.io-stream": "^0.9.1",
+    "uuid": "^9.0.0"
   },
   "devDependencies": {
     "@types/react": "^18.0.17",
@@ -33,9 +35,9 @@
     "@typescript-eslint/eslint-plugin": "^5.40.1",
     "@typescript-eslint/parser": "^5.40.1",
     "eslint": "^8.0.1",
+    "eslint-config-next": "^12.3.1",
     "eslint-config-prettier": "^8.5.0",
     "eslint-config-standard-with-typescript": "^23.0.0",
-    "eslint-config-next": "^12.3.1",
     "eslint-plugin-import": "^2.25.2",
     "eslint-plugin-n": "^15.0.0",
     "eslint-plugin-prettier": "^4.2.1",
