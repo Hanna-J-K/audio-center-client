@@ -1,4 +1,4 @@
-import { forwardRef, useState, createContext, useContext } from "react";
+import { forwardRef } from "react";
 import {
   Group,
   Text,
@@ -10,19 +10,6 @@ import {
 import React from "react";
 import { useAudio } from "./AudioPlayerContext";
 import { socket } from "./AudioPlayerContext";
-
-interface ITrackContext {
-  trackInfo: {
-    title: string;
-    artist: string;
-    album: string;
-  };
-  setTrackInfo: (track: {
-    title: string;
-    artist: string;
-    album: string;
-  }) => void;
-}
 
 const useStyles = createStyles((theme) => ({
   dropdown: {
@@ -100,12 +87,7 @@ interface SearchBarProps {
 
 export function SearchBar({ data }: SearchBarProps) {
   const { classes } = useStyles();
-  const { setTrackId, setQueue } = useAudio();
-  const [trackInfo, setTrackInfo] = useState({
-    title: "",
-    artist: "",
-    album: "",
-  });
+  const { setTrackId, trackId } = useAudio();
 
   const AutoCompleteItem = forwardRef<HTMLDivElement, ItemProps>(
     ({ artist, value, ...others }: ItemProps, ref) => (
@@ -141,6 +123,10 @@ export function SearchBar({ data }: SearchBarProps) {
         item.artist.toLowerCase().includes(value.toLowerCase().trim())
       }
       onItemSubmit={(item) => {
+        if (trackId === null) {
+          socket.emit("send-track-source", item.id);
+        }
+        console.log("emitting search for track");
         socket.emit("search-for-track", item.id);
       }}
       nothingFound="There seems to be nothing here matching your search..."

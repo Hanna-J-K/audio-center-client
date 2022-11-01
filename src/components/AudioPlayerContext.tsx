@@ -10,7 +10,6 @@ import React, {
 import { io } from "socket.io-client";
 
 interface IAudioPlayerContext {
-  setAudioSource: (audio: ArrayBuffer) => void;
   playTrack: () => void;
   stopTrack: () => void;
   playing: boolean;
@@ -19,8 +18,8 @@ interface IAudioPlayerContext {
   setVolume: (volume: number) => void;
   queue: string[];
   setQueue: (queue: string[]) => void;
-  trackId: string;
-  setTrackId: (id: string) => void;
+  trackId: ITrack | null;
+  setTrackId: (trackId: ITrack | null) => void;
   playNextTrack: () => void;
   playPreviousTrack: () => void;
   source: AudioBufferSourceNode;
@@ -31,13 +30,14 @@ const AudioPlayerContext = createContext<IAudioPlayerContext | undefined>(
 );
 export const socket = io("http://localhost:3000");
 
+export interface ITrack {
+  id: string;
+  source: ArrayBuffer;
+}
+
 const AudioContextProvider = ({ children }: any) => {
-  const [hasStarted, setHasStarted] = useState(false);
-  const [audioSource, setAudioSource] = useState<ArrayBuffer>(
-    new ArrayBuffer(0),
-  );
   const [volume, setVolume] = useState(1);
-  const [trackId, setTrackId] = useState<string>("");
+  const [trackId, setTrackId] = useState<ITrack | null>(null);
   const audioCtx = useMemo(() => new AudioContext(), []);
   const [playing, setPlaying] = useState(false);
   const [queue, setQueue] = useState<string[]>([]);
@@ -47,99 +47,108 @@ const AudioContextProvider = ({ children }: any) => {
   const gainNode = useMemo(() => new GainNode(audioCtx), [audioCtx]);
 
   useEffect(() => {
-    currentBuffer.current = null;
-    setPlaying(false);
-    audioCtx.resume();
-    return () => {
-      source.current.disconnect();
-    };
-  }, [audioSource, audioCtx]);
-
-  useEffect(() => {
     gainNode.gain.value = volume;
   }, [volume, gainNode.gain]);
 
-  const prepareAudio = useCallback(() => {
-    audioCtx.decodeAudioData(
-      audioSource.slice(0),
-      (buffer) => {
-        console.log("buffer", buffer);
-        currentBuffer.current = buffer;
-        source.current.buffer = buffer;
+  const prepareAudio = useCallback(
+    (audioSource: ArrayBuffer) => {
+      audioCtx.decodeAudioData(
+        audioSource.slice(0),
+        (buffer) => {
+          console.log("buffer", buffer);
+          currentBuffer.current = buffer;
+          source.current.buffer = buffer;
 
-        source.current.connect(audioCtx.destination);
-        source.current.loop = false;
-      },
-      (e) => {
-        `Error with decoding audio data ${e}`;
-      },
+          source.current.connect(audioCtx.destination);
+          source.current.loop = false;
+        },
+        (e) => {
+          `Error with decoding audio data ${e}`;
+        },
+      );
+    },
+    [audioCtx],
+  );
+
+  const manageQueueOnEnded = useCallback(() => {
+    console.log(
+      "ended: currentBuffer.current = null, queue length before slice: ",
+      queue.length,
     );
-  }, [audioSource, audioCtx]);
+    currentBuffer.current = null;
+    const remaining = queue.slice(1);
+    console.log("remaining length: ", remaining.length);
+    if (remaining.length === 0) {
+      console.log("ended, remaining length 0: setPlaying(false)");
+      setPlaying(false);
+    } else {
+      console.log("ended, remaining length !==: setTrackId(remaining[0])");
+      socket.emit("send-track-source", remaining[0]);
+    }
+    setQueue(remaining);
+  }, [queue]);
 
   const playTrack = useCallback(() => {
+    if (trackId === null) {
+      return;
+    }
+    console.log("playTrack(): source.current = new AudioBufferSourceNode");
     source.current = new AudioBufferSourceNode(audioCtx);
     source.current.onended = () => {
-      console.log("ended");
-      currentBuffer.current = null;
-      setPlaying(false);
+      manageQueueOnEnded();
     };
     if (currentBuffer.current === null) {
-      console.log("currentBuffer.current === null");
-      prepareAudio();
+      console.log(
+        "playTrack(), currentBuffer.current === null: prepareAudio(), source.current.start(0), setPlaying(true)",
+      );
+      prepareAudio(trackId.source);
       source.current.start(0);
+      setPlaying(true);
     } else {
-      console.log("currentBuffer.current = currenbuffercurentl");
+      console.log(
+        "playTrack(), currentBuffer.current !== null: source.current.buffer = currentBuffer.current)",
+      );
       source.current.buffer = currentBuffer.current;
     }
-
+    console.log("ostatnia instrukcja playTrack(): audioCtx.resume()");
     audioCtx.resume();
-  }, [audioCtx, source, prepareAudio]);
+  }, [audioCtx, prepareAudio, manageQueueOnEnded, trackId]);
 
   const stopTrack = () => {
-    if (hasStarted) {
+    if (currentBuffer.current != null) {
+      console.log(
+        "stopTrack(), currentBuffer.current != null: audioctx.suspend()",
+      );
       audioCtx.suspend();
     }
   };
 
-  const playNextTrack = () => {
-    if (queue.length < 2) {
-      setTrackId(queue[0]);
-    } else if (queue.indexOf(trackId) === queue.length - 1) {
-      setTrackId(queue[0]);
-    } else {
-      setTrackId(queue[queue.indexOf(trackId) - 1]);
-    }
+  useEffect(() => {
     playTrack();
+  }, [trackId]);
+
+  const playNextTrack = () => {
+    source.current.disconnect();
+    manageQueueOnEnded();
   };
 
   const playPreviousTrack = () => {
-    if (queue.length < 2) {
-      setTrackId(queue[0]);
-    } else if (queue.indexOf(trackId) === 0) {
-      setTrackId(queue[queue.length - 1]);
-    } else {
-      setTrackId(queue[queue.indexOf(trackId) - 1]);
-    }
-    playTrack();
+    console.log("to do playlisty");
   };
 
   useEffect(() => {
-    if (currentBuffer.current != null || queue.length === 0) {
-      return;
-    }
-
-    console.log("wywolalem sie");
-    setTrackId(queue[0]);
-    setQueue(queue.slice(1));
-    playTrack();
-  }, [queue, playTrack]);
+    console.log("osiwieję i kacper też");
+    source.current.onended = () => {
+      console.log("w środku onended");
+      manageQueueOnEnded();
+    };
+  }, [manageQueueOnEnded, queue]);
 
   return (
     <AudioPlayerContext.Provider
       value={{
         playTrack,
         stopTrack,
-        setAudioSource,
         trackId,
         setTrackId,
         playing,
