@@ -1,26 +1,15 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { TrackList } from "../src/components/TrackList";
 import { PlayerFooter } from "../src/components/Player/PlayerFooter";
+import { socket, useAudio } from "../src/components/AudioPlayerContext";
+import type { ITrackPlaylistData } from ".";
 
-const libraryData = [
-  {
-    id: "1",
-    title: "The End",
-    artist: "The Doors",
-    album: "The Doors",
-  },
-  {
-    id: "2",
-    title: "The End",
-    artist: "The Doors",
-    album: "The Doors",
-  },
-];
+export default function LibraryPage() {
+  const { savedLibraryData } = useAudio();
 
-export default function library() {
   return (
     <>
-      <TrackList data={libraryData} />
+      <TrackList data={savedLibraryData} />
       <PlayerFooter />
     </>
   );

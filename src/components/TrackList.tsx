@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   createStyles,
   Table,
@@ -8,6 +8,7 @@ import {
 } from "@mantine/core";
 import React from "react";
 import { IconDeviceFloppy } from "@tabler/icons";
+import { socket, useAudio } from "./AudioPlayerContext";
 
 const useStyles = createStyles((theme) => ({
   header: {
@@ -87,10 +88,26 @@ interface TableScrollAreaProps {
   data: { id: string; title: string; artist: string; album: string }[];
 }
 
+const savedToLibrary = (id: string) => {
+  console.log("id", id);
+  socket.emit("save-to-library", id);
+};
+
 export function TrackList({ data }: TableScrollAreaProps) {
   const { classes, cx } = useStyles();
   const [scrolled, setScrolled] = useState(false);
-  const [savedToLibrary, setSavedToLibrary] = useState(false);
+  const { savedLibraryData } = useAudio();
+
+  const checkIfSaved = useCallback(
+    (id: string) => {
+      if (savedLibraryData.find((track) => track.id === id)) {
+        return true;
+      } else {
+        return false;
+      }
+    },
+    [savedLibraryData],
+  );
 
   const rows = data.map((row) => (
     <tr key={row.title} className={classes.tableRow}>
@@ -99,8 +116,8 @@ export function TrackList({ data }: TableScrollAreaProps) {
       <td style={{ borderBottom: "1px solid #2a9d8f" }}>{row.album}</td>
       <td style={{ borderBottom: "1px solid #2a9d8f" }}>
         <ActionIcon
-          onClick={() => setSavedToLibrary(!savedToLibrary)}
-          variant={savedToLibrary ? "filled" : "outline"}
+          onClick={() => savedToLibrary(row.id)}
+          variant={checkIfSaved(row.id) ? "filled" : "outline"}
         >
           <IconDeviceFloppy />
         </ActionIcon>

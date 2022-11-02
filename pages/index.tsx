@@ -6,7 +6,7 @@ import { socket } from "../src/components/AudioPlayerContext";
 import { useAudio } from "../src/components/AudioPlayerContext";
 import type { ITrack } from "../src/components/AudioPlayerContext";
 
-interface ITrackPlaylistData {
+export interface ITrackPlaylistData {
   id: string;
   title: string;
   artist: string;
@@ -14,7 +14,8 @@ interface ITrackPlaylistData {
 }
 
 export default function IndexPage() {
-  const { queue, setQueue, setTrackId } = useAudio();
+  const { queue, setQueue, setTrackId, savedLibraryData, setSavedLibraryData } =
+    useAudio();
   const [searchTrackData, setSearchTrackData] = useState<
     Array<ITrackPlaylistData>
   >([]);
@@ -47,6 +48,25 @@ export default function IndexPage() {
       socket.off("send-track-source");
     };
   }, [queue, setQueue, setTrackId]);
+
+  useEffect(() => {
+    socket.on("send-saved-track", (data: ITrackPlaylistData) => {
+      if (savedLibraryData.find((track) => track.id === data.id)) {
+        console.log("track previously saved, removing ", data);
+        setSavedLibraryData(
+          savedLibraryData.filter((track) => track.id !== data.id),
+        );
+        console.log("savedLibraryData", savedLibraryData);
+        return;
+      }
+      console.log("saving sent track to library", data);
+      setSavedLibraryData([...savedLibraryData, data]);
+      console.log("savedLibraryData", savedLibraryData);
+    });
+    return () => {
+      socket.off("send-saved-track");
+    };
+  }, [savedLibraryData, setSavedLibraryData]);
 
   return (
     <div>
