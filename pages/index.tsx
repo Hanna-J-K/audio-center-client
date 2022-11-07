@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { SearchBar } from "../src/components/SearchBar";
-import { TrackList } from "../src/components/TrackList";
 import { PlayerFooter } from "../src/components/Player/PlayerFooter";
 import { socket } from "../src/components/AudioPlayerContext";
 import { useAudio } from "../src/components/AudioPlayerContext";
 import type { ITrack } from "../src/components/AudioPlayerContext";
+import { QueueList } from "../src/components/Playlist/QueueList";
 
 export interface ITrackPlaylistData {
   id: string;
@@ -14,14 +14,13 @@ export interface ITrackPlaylistData {
 }
 
 export default function IndexPage() {
-  const { queue, setQueue, setTrackId, savedLibraryData, setSavedLibraryData } =
-    useAudio();
+  const { queue, setQueue, setTrackId } = useAudio();
   const [searchTrackData, setSearchTrackData] = useState<
     Array<ITrackPlaylistData>
   >([]);
-  const [trackPlaylistData, setTrackPlaylistData] = useState<
-    Array<ITrackPlaylistData>
-  >([]);
+  const [queueListData, setQueueListData] = useState<Array<ITrackPlaylistData>>(
+    [],
+  );
 
   useEffect(() => {
     socket.emit("get-track-list");
@@ -32,7 +31,7 @@ export default function IndexPage() {
       setSearchTrackData(data);
     });
     socket.on("send-track-info", (data) => {
-      setTrackPlaylistData((prev) => [...prev, data]);
+      setQueueListData((prev) => [...prev, data]);
     });
     socket.on("send-track-to-queue", ({ id }: { id: string }) => {
       setQueue([...queue, id]);
@@ -49,29 +48,10 @@ export default function IndexPage() {
     };
   }, [queue, setQueue, setTrackId]);
 
-  useEffect(() => {
-    socket.on("send-saved-track", (data: ITrackPlaylistData) => {
-      if (savedLibraryData.find((track) => track.id === data.id)) {
-        console.log("track previously saved, removing ", data);
-        setSavedLibraryData(
-          savedLibraryData.filter((track) => track.id !== data.id),
-        );
-        console.log("savedLibraryData", savedLibraryData);
-        return;
-      }
-      console.log("saving sent track to library", data);
-      setSavedLibraryData([...savedLibraryData, data]);
-      console.log("savedLibraryData", savedLibraryData);
-    });
-    return () => {
-      socket.off("send-saved-track");
-    };
-  }, [savedLibraryData, setSavedLibraryData]);
-
   return (
     <div>
       <SearchBar data={searchTrackData} />
-      <TrackList data={trackPlaylistData} />
+      <QueueList queueListData={queueListData} />
       <PlayerFooter />
     </div>
   );

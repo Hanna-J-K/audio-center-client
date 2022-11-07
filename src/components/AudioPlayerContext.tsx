@@ -8,7 +8,7 @@ import React, {
   useRef,
 } from "react";
 import { io } from "socket.io-client";
-import type { ITrackPlaylistData } from "../../pages/index";
+import { useLibrary } from "./Playlist/LibraryList";
 
 interface IAudioPlayerContext {
   playTrack: () => void;
@@ -24,8 +24,6 @@ interface IAudioPlayerContext {
   playNextTrack: () => void;
   playPreviousTrack: () => void;
   source: AudioBufferSourceNode;
-  savedLibraryData: ITrackPlaylistData[];
-  setSavedLibraryData: (savedPlaylistData: ITrackPlaylistData[]) => void;
 }
 
 const AudioPlayerContext = createContext<IAudioPlayerContext | undefined>(
@@ -44,9 +42,7 @@ const AudioContextProvider = ({ children }: any) => {
   const audioCtx = useMemo(() => new AudioContext(), []);
   const [playing, setPlaying] = useState(false);
   const [queue, setQueue] = useState<string[]>([]);
-  const [savedLibraryData, setSavedLibraryData] = useState<
-    Array<ITrackPlaylistData>
-  >([]);
+  const { library, mutate } = useLibrary();
 
   // const source = useMemo(() => new AudioBufferSourceNode(audioCtx), [audioCtx]);
   const source = useRef(new AudioBufferSourceNode(audioCtx));
@@ -91,23 +87,23 @@ const AudioContextProvider = ({ children }: any) => {
   const manageQueueOnPrevious = useCallback(() => {
     currentBuffer.current = null;
     if (trackId) {
-      const currentTrack = savedLibraryData.filter(
+      const currentTrack = library?.filter(
         (track) => track.id === trackId.id,
       )[0];
       if (currentTrack) {
-        const previousTrackId =
-          savedLibraryData[savedLibraryData.indexOf(currentTrack) - 1].id;
+        const previousTrackId = library[library.indexOf(currentTrack) - 1].id;
         const rewoundQueue = [previousTrackId, ...queue.splice(0)];
         socket.emit("send-track-source", previousTrackId);
         setQueue(rewoundQueue);
       }
     }
-  }, [queue, savedLibraryData, trackId]);
+  }, [queue, library, trackId]);
 
   const playTrack = useCallback(() => {
     if (trackId === null) {
       return;
     }
+    socket.emit("get-now-playing-info", trackId.id);
     source.current = new AudioBufferSourceNode(audioCtx);
     source.current.onended = () => {
       manageQueueOnEnded();
@@ -140,7 +136,11 @@ const AudioContextProvider = ({ children }: any) => {
   const playPreviousTrack = () => {
     //TODO: handle errors, cleanup, separate functions
     source.current.disconnect();
-    manageQueueOnPrevious();
+    if (queue.length === 1) {
+      manageQueueOnEnded();
+    } else {
+      manageQueueOnPrevious();
+    }
   };
 
   useEffect(() => {
@@ -165,8 +165,6 @@ const AudioContextProvider = ({ children }: any) => {
         playNextTrack,
         playPreviousTrack,
         source: source.current,
-        savedLibraryData,
-        setSavedLibraryData,
       }}
     >
       {children}

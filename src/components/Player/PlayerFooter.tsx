@@ -17,8 +17,9 @@ import {
   IconVolumeOff,
   IconMusic,
 } from "@tabler/icons";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useAudio } from "../AudioPlayerContext";
+import { socket } from "../AudioPlayerContext";
 
 const useStyles = createStyles((theme) => ({
   footer: {
@@ -95,9 +96,15 @@ const useStyles = createStyles((theme) => ({
   },
 }));
 
+interface INowPlayingInfo {
+  trackTitle: string;
+  trackArtist: string;
+}
+
 export function PlayerFooter() {
   const { classes } = useStyles();
   const [muted, setMuted] = useState(false);
+  const [nowPlayingInfo, setNowPlayingInfo] = useState<INowPlayingInfo>();
   const {
     playTrack,
     stopTrack,
@@ -109,22 +116,35 @@ export function PlayerFooter() {
     playPreviousTrack,
   } = useAudio();
 
+  useEffect(() => {
+    socket.on("send-now-playing-info", (data) => {
+      setNowPlayingInfo({ trackTitle: data.title, trackArtist: data.artist });
+    });
+    return () => {
+      socket.off("send-now-playing-info");
+    };
+  }, [playTrack]);
+
   return (
     <Footer className={classes.footer} height={125}>
-      <Grid style={{ justifyItems: "center" }}>
-        <Grid.Col span={4} style={{ justifyItems: "center" }}>
+      <Grid align="center">
+        <Grid.Col span={4}>
           <Center>
-            <Container>
-              <ActionIcon className={classes.icon} size={36}>
-                <IconMusic size={48} />
-              </ActionIcon>
-              <Title className={classes.track} order={2}>
-                Track
-              </Title>
-              <Title className={classes.track} order={2}>
-                Artist
-              </Title>
-            </Container>
+            <Grid align="center">
+              <Grid.Col span="auto">
+                <ActionIcon className={classes.icon} size={36}>
+                  <IconMusic size={48} />
+                </ActionIcon>
+              </Grid.Col>
+              <Grid.Col span="content">
+                <Title className={classes.track} order={2}>
+                  Track: {nowPlayingInfo?.trackTitle}
+                </Title>
+                <Title className={classes.track} order={2}>
+                  Artist: {nowPlayingInfo?.trackArtist}
+                </Title>
+              </Grid.Col>
+            </Grid>
           </Center>
         </Grid.Col>
         <Grid.Col span={4}>

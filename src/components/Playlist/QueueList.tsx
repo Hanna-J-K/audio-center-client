@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import {
   createStyles,
   Table,
@@ -8,7 +8,8 @@ import {
 } from "@mantine/core";
 import React from "react";
 import { IconDeviceFloppy } from "@tabler/icons";
-import { socket, useAudio } from "./AudioPlayerContext";
+import { socket } from "../AudioPlayerContext";
+import { useLibrary } from "./LibraryList";
 
 const useStyles = createStyles((theme) => ({
   header: {
@@ -82,10 +83,32 @@ const useStyles = createStyles((theme) => ({
         : theme.colors.persianGreen[0]
     }`,
   },
+
+  iconUnsaved: {
+    color: theme.colors.sandyBrown[0],
+    backgroundColor: "none",
+    borderColor: theme.colors.sandyBrown[0],
+    borderWidth: 1,
+    "&:hover": {
+      color: theme.colors.sandyBrown[3],
+      backgroundColor: theme.colors.charcoal[4],
+      borderColor: theme.colors.sandyBrown[3],
+    },
+  },
+
+  iconSaved: {
+    color: theme.colors.charcoal[4],
+    backgroundColor: theme.colors.sandyBrown[0],
+    "&:hover": {
+      color: theme.colors.charcoal[4],
+      backgroundColor: theme.colors.sandyBrown[3],
+      borderColor: theme.colors.sandyBrown[3],
+    },
+  },
 }));
 
 interface TableScrollAreaProps {
-  data: { id: string; title: string; artist: string; album: string }[];
+  queueListData: { id: string; title: string; artist: string; album: string }[];
 }
 
 const savedToLibrary = (id: string) => {
@@ -93,23 +116,24 @@ const savedToLibrary = (id: string) => {
   socket.emit("save-to-library", id);
 };
 
-export function TrackList({ data }: TableScrollAreaProps) {
+export function QueueList({ queueListData }: TableScrollAreaProps) {
   const { classes, cx } = useStyles();
   const [scrolled, setScrolled] = useState(false);
-  const { savedLibraryData } = useAudio();
+  const { library, mutate } = useLibrary();
 
   const checkIfSaved = useCallback(
     (id: string) => {
-      if (savedLibraryData.find((track) => track.id === id)) {
+      if (library?.find((track) => track.id === id)) {
         return true;
       } else {
         return false;
       }
     },
-    [savedLibraryData],
+
+    [library],
   );
 
-  const rows = data.map((row) => (
+  const rows = queueListData.map((row) => (
     <tr key={row.title} className={classes.tableRow}>
       <td style={{ borderBottom: "1px solid #2a9d8f" }}>{row.title}</td>
       <td style={{ borderBottom: "1px solid #2a9d8f" }}>{row.artist}</td>
@@ -117,7 +141,9 @@ export function TrackList({ data }: TableScrollAreaProps) {
       <td style={{ borderBottom: "1px solid #2a9d8f" }}>
         <ActionIcon
           onClick={() => savedToLibrary(row.id)}
-          variant={checkIfSaved(row.id) ? "filled" : "outline"}
+          className={
+            checkIfSaved(row.id) ? classes.iconSaved : classes.iconUnsaved
+          }
         >
           <IconDeviceFloppy />
         </ActionIcon>
