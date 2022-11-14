@@ -87,7 +87,7 @@ interface SearchBarProps {
 
 export function SearchBar({ data }: SearchBarProps) {
   const { classes } = useStyles();
-  const { setTrackId, trackId } = useAudio();
+  const { trackId } = useAudio();
 
   const AutoCompleteItem = forwardRef<HTMLDivElement, ItemProps>(
     ({ artist, value, ...others }: ItemProps, ref) => (
@@ -124,10 +124,10 @@ export function SearchBar({ data }: SearchBarProps) {
       }
       onItemSubmit={(item) => {
         if (trackId === null) {
-          socket.emit("send-track-source", item.id);
+          socket.emit("send-track-source", item);
         }
         console.log("emitting search for track");
-        socket.emit("search-for-track", item.id);
+        socket.emit("search-for-track", item);
       }}
       nothingFound="There seems to be nothing here matching your search..."
     />

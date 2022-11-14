@@ -10,7 +10,7 @@ import {
 import { theme } from "../styles/theme";
 import { AppProps } from "next/app";
 import Layout from "../src/components/Layout";
-import dynamic from "next/dynamic";
+import { AudioContextProvider } from "../src/components/AudioPlayerContext";
 
 function App({ Component, pageProps }: AppProps) {
   const [colorScheme, setColorScheme] = useState<ColorScheme>("light");
@@ -18,15 +18,8 @@ function App({ Component, pageProps }: AppProps) {
     setColorScheme(colorScheme === "dark" ? "light" : "dark");
   };
 
-  const DynamicContextProvider = dynamic(
-    () => import("../src/Context").then((mod) => mod.ContextProvider),
-    {
-      ssr: false,
-    },
-  );
-
   return (
-    <DynamicContextProvider>
+    <AudioContextProvider>
       <ColorSchemeProvider
         colorScheme={colorScheme}
         toggleColorScheme={toggleColorScheme}
@@ -42,7 +35,7 @@ function App({ Component, pageProps }: AppProps) {
           </Layout>
         </MantineProvider>
       </ColorSchemeProvider>
-    </DynamicContextProvider>
+    </AudioContextProvider>
   );
 }
 

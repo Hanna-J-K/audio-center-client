@@ -5,22 +5,13 @@ import { socket } from "../src/components/AudioPlayerContext";
 import { useAudio } from "../src/components/AudioPlayerContext";
 import type { ITrack } from "../src/components/AudioPlayerContext";
 import { QueueList } from "../src/components/Playlist/QueueList";
-
-export interface ITrackPlaylistData {
-  id: string;
-  title: string;
-  artist: string;
-  album: string;
-}
+import type { ITrackPlaylistData } from "../src/components/AudioPlayerContext";
 
 export default function IndexPage() {
   const { queue, setQueue, setTrackId } = useAudio();
   const [searchTrackData, setSearchTrackData] = useState<
     Array<ITrackPlaylistData>
   >([]);
-  const [queueListData, setQueueListData] = useState<Array<ITrackPlaylistData>>(
-    [],
-  );
 
   useEffect(() => {
     socket.emit("get-track-list");
@@ -31,10 +22,8 @@ export default function IndexPage() {
       setSearchTrackData(data);
     });
     socket.on("send-track-info", (data) => {
-      setQueueListData((prev) => [...prev, data]);
-    });
-    socket.on("send-track-to-queue", ({ id }: { id: string }) => {
-      setQueue([...queue, id]);
+      setQueue([...queue, data]);
+      console.log("queue", queue);
     });
     socket.on("send-track", (track: ITrack) => {
       setTrackId(track);
@@ -51,7 +40,7 @@ export default function IndexPage() {
   return (
     <div>
       <SearchBar data={searchTrackData} />
-      <QueueList queueListData={queueListData} />
+      <QueueList queueListData={queue} />
       <PlayerFooter />
     </div>
   );

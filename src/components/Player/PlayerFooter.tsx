@@ -5,7 +5,6 @@ import {
   Center,
   Grid,
   Title,
-  Container,
   Slider,
 } from "@mantine/core";
 import {
@@ -96,15 +95,9 @@ const useStyles = createStyles((theme) => ({
   },
 }));
 
-interface INowPlayingInfo {
-  trackTitle: string;
-  trackArtist: string;
-}
-
 export function PlayerFooter() {
   const { classes } = useStyles();
   const [muted, setMuted] = useState(false);
-  const [nowPlayingInfo, setNowPlayingInfo] = useState<INowPlayingInfo>();
   const {
     playTrack,
     stopTrack,
@@ -114,6 +107,8 @@ export function PlayerFooter() {
     volume,
     playNextTrack,
     playPreviousTrack,
+    nowPlayingInfo,
+    setNowPlayingInfo,
   } = useAudio();
 
   useEffect(() => {
@@ -123,7 +118,7 @@ export function PlayerFooter() {
     return () => {
       socket.off("send-now-playing-info");
     };
-  }, [playTrack]);
+  }, [playTrack, setNowPlayingInfo]);
 
   return (
     <Footer className={classes.footer} height={125}>
@@ -190,7 +185,9 @@ export function PlayerFooter() {
               max={2}
               step={0.01}
               className={classes.volumeSlider}
-              onChange={(value) => setVolume(value)}
+              onChange={(value) => {
+                setVolume(value);
+              }}
             />
           </Center>
         </Grid.Col>

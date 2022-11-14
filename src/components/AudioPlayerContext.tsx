@@ -4,11 +4,22 @@ import React, {
   useEffect,
   useState,
   useCallback,
-  useMemo,
   useRef,
 } from "react";
 import { io } from "socket.io-client";
 import { useLibrary } from "./Playlist/LibraryList";
+
+export interface ITrackPlaylistData {
+  id: string;
+  title: string;
+  artist: string;
+  album: string;
+}
+
+interface INowPlayingInfo {
+  trackTitle: string;
+  trackArtist: string;
+}
 
 interface IAudioPlayerContext {
   playTrack: () => void;
@@ -17,13 +28,15 @@ interface IAudioPlayerContext {
   setPlaying: (playing: boolean) => void;
   volume: number;
   setVolume: (volume: number) => void;
-  queue: string[];
-  setQueue: (queue: string[]) => void;
+  queue: ITrackPlaylistData[];
+  setQueue: (queue: ITrackPlaylistData[]) => void;
   trackId: ITrack | null;
   setTrackId: (trackId: ITrack | null) => void;
   playNextTrack: () => void;
   playPreviousTrack: () => void;
-  source: AudioBufferSourceNode;
+  source: AudioBufferSourceNode | null;
+  nowPlayingInfo: INowPlayingInfo | null;
+  setNowPlayingInfo: (nowPlayingInfo: INowPlayingInfo | null) => void;
 }
 
 const AudioPlayerContext = createContext<IAudioPlayerContext | undefined>(
@@ -39,25 +52,39 @@ export interface ITrack {
 const AudioContextProvider = ({ children }: any) => {
   const [volume, setVolume] = useState(1);
   const [trackId, setTrackId] = useState<ITrack | null>(null);
-  const audioCtx = useMemo(() => new AudioContext(), []);
+  const [audioCtx, setAudioCtx] = useState<AudioContext | null>(null);
+  // const audioCtx = useMemo(() => new AudioContext(), []);
   const [playing, setPlaying] = useState(false);
-  const [queue, setQueue] = useState<string[]>([]);
+  const [queue, setQueue] = useState<ITrackPlaylistData[]>([]);
+  const [nowPlayingInfo, setNowPlayingInfo] = useState<INowPlayingInfo | null>(
+    null,
+  );
   const { library, mutate } = useLibrary();
 
-  // const source = useMemo(() => new AudioBufferSourceNode(audioCtx), [audioCtx]);
-  const source = useRef(new AudioBufferSourceNode(audioCtx));
+  const source = useRef<AudioBufferSourceNode | null>(null);
   const currentBuffer = useRef<AudioBuffer | null>(null);
-  const gainNode = useMemo(() => new GainNode(audioCtx), [audioCtx]);
+  // const source = useMemo(() => new AudioBufferSourceNode(audioCtx), [audioCtx]);
 
   useEffect(() => {
-    gainNode.gain.value = volume;
-  }, [volume, gainNode.gain]);
+    if (!window) {
+      return;
+    }
+    const newAudioCtx = new AudioContext();
+    setAudioCtx(newAudioCtx);
+    source.current = new AudioBufferSourceNode(newAudioCtx);
+  }, []);
 
   const prepareAudio = useCallback(
     (audioSource: ArrayBuffer) => {
+      if (!audioCtx) {
+        return;
+      }
       audioCtx.decodeAudioData(
         audioSource.slice(0),
         (buffer) => {
+          if (!source.current) {
+            return;
+          }
           console.log("buffer", buffer);
           currentBuffer.current = buffer;
           source.current.buffer = buffer;
@@ -91,16 +118,16 @@ const AudioContextProvider = ({ children }: any) => {
         (track) => track.id === trackId.id,
       )[0];
       if (currentTrack) {
-        const previousTrackId = library[library.indexOf(currentTrack) - 1].id;
-        const rewoundQueue = [previousTrackId, ...queue.splice(0)];
-        socket.emit("send-track-source", previousTrackId);
+        const previousTrack = library[library.indexOf(currentTrack) - 1];
+        const rewoundQueue = [previousTrack, ...queue.splice(0)];
+        socket.emit("send-track-source", previousTrack);
         setQueue(rewoundQueue);
       }
     }
   }, [queue, library, trackId]);
 
   const playTrack = useCallback(() => {
-    if (trackId === null) {
+    if (trackId === null || audioCtx === null) {
       return;
     }
     socket.emit("get-now-playing-info", trackId.id);
@@ -119,32 +146,48 @@ const AudioContextProvider = ({ children }: any) => {
   }, [audioCtx, prepareAudio, manageQueueOnEnded, trackId]);
 
   const stopTrack = () => {
-    if (currentBuffer.current != null) {
+    if (currentBuffer.current != null && audioCtx != null) {
       audioCtx.suspend();
     }
   };
 
   useEffect(() => {
+    console.log("use effect: play track: ", queue);
     playTrack();
   }, [trackId]);
 
   const playNextTrack = () => {
+    if (!source.current) {
+      return;
+    }
     source.current.disconnect();
     manageQueueOnEnded();
   };
 
   const playPreviousTrack = () => {
+    console.log("play previous track");
+    console.log("queue length", queue.length);
     //TODO: handle errors, cleanup, separate functions
+    if (!source.current) {
+      return;
+    }
     source.current.disconnect();
     if (queue.length === 1) {
+      console.log("play previous track: queue length === 1");
       manageQueueOnEnded();
     } else {
+      console.log("play previous track: queue length !== 1");
       manageQueueOnPrevious();
     }
   };
 
   useEffect(() => {
+    console.log("use effect: on ended: ", queue);
+    if (!source.current) {
+      return;
+    }
     source.current.onended = () => {
+      console.log("on ended");
       manageQueueOnEnded();
     };
   }, [manageQueueOnEnded, queue]);
@@ -165,6 +208,8 @@ const AudioContextProvider = ({ children }: any) => {
         playNextTrack,
         playPreviousTrack,
         source: source.current,
+        nowPlayingInfo,
+        setNowPlayingInfo,
       }}
     >
       {children}

@@ -123,7 +123,14 @@ export function QueueList({ queueListData }: TableScrollAreaProps) {
 
   const checkIfSaved = useCallback(
     (id: string) => {
-      if (library?.find((track) => track.id === id)) {
+      console.log("checkIfSaved", library);
+      if (
+        library?.find((track) => {
+          if (track !== null) {
+            track.id === id;
+          }
+        })
+      ) {
         return true;
       } else {
         return false;

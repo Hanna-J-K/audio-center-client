@@ -8,8 +8,7 @@ import {
 } from "@mantine/core";
 import React from "react";
 import { IconDeviceFloppy } from "@tabler/icons";
-import { socket } from "../AudioPlayerContext";
-import type { ITrackPlaylistData } from "../../../pages/index";
+import { ITrackPlaylistData, socket } from "../AudioPlayerContext";
 import useSWR from "swr";
 
 const useStyles = createStyles((theme) => ({
@@ -111,6 +110,7 @@ const useStyles = createStyles((theme) => ({
 const savedToLibrary = (id: string) => {
   console.log("id", id);
   socket.emit("save-to-library", id);
+  console.log("halo");
 };
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
