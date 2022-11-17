@@ -7,7 +7,6 @@ import React, {
   useRef,
 } from "react";
 import { io } from "socket.io-client";
-import { useLibrary } from "./Playlist/LibraryList";
 
 export interface ITrackPlaylistData {
   id: string;
@@ -19,6 +18,12 @@ export interface ITrackPlaylistData {
 interface INowPlayingInfo {
   trackTitle: string;
   trackArtist: string;
+  radioStation: boolean;
+}
+export interface IRadioStationData {
+  id: string;
+  name: string;
+  url: string;
 }
 
 interface IAudioPlayerContext {
@@ -37,6 +42,7 @@ interface IAudioPlayerContext {
   source: AudioBufferSourceNode | null;
   nowPlayingInfo: INowPlayingInfo | null;
   setNowPlayingInfo: (nowPlayingInfo: INowPlayingInfo | null) => void;
+  playRadioStation: (name: string, url: string) => void;
 }
 
 const AudioPlayerContext = createContext<IAudioPlayerContext | undefined>(
@@ -59,11 +65,12 @@ const AudioContextProvider = ({ children }: any) => {
   const [nowPlayingInfo, setNowPlayingInfo] = useState<INowPlayingInfo | null>(
     null,
   );
-  const { library, mutate } = useLibrary();
+  const [trackHistory, setTrackHistory] = useState<ITrackPlaylistData[]>([]);
+  const [radioStationURL, setRadioStationURL] = useState<string>();
+  const radioStationAudio = useRef<HTMLAudioElement | null>(null);
 
   const source = useRef<AudioBufferSourceNode | null>(null);
   const currentBuffer = useRef<AudioBuffer | null>(null);
-  // const source = useMemo(() => new AudioBufferSourceNode(audioCtx), [audioCtx]);
 
   useEffect(() => {
     if (!window) {
@@ -106,6 +113,8 @@ const AudioContextProvider = ({ children }: any) => {
     if (remaining.length === 0) {
       setPlaying(false);
     } else {
+      const finishedTrack = queue[0];
+      setTrackHistory((prev) => [...prev, finishedTrack]);
       socket.emit("send-track-source", remaining[0]);
     }
     setQueue(remaining);
@@ -113,20 +122,29 @@ const AudioContextProvider = ({ children }: any) => {
 
   const manageQueueOnPrevious = useCallback(() => {
     currentBuffer.current = null;
-    if (trackId) {
-      const currentTrack = library?.filter(
-        (track) => track.id === trackId.id,
-      )[0];
-      if (currentTrack) {
-        const previousTrack = library[library.indexOf(currentTrack) - 1];
-        const rewoundQueue = [previousTrack, ...queue.splice(0)];
-        socket.emit("send-track-source", previousTrack);
-        setQueue(rewoundQueue);
-      }
+    if (trackHistory.length === 0) {
+      setPlaying(false);
+    } else {
+      socket.emit("send-track-source", trackHistory[trackHistory.length - 1]);
+      setQueue((prev) => [trackHistory[trackHistory.length - 1], ...prev]);
+      setTrackHistory((prev) => prev.slice(0, prev.length - 1));
     }
-  }, [queue, library, trackId]);
+  }, [trackHistory]);
 
   const playTrack = useCallback(() => {
+    console.log(radioStationAudio.current);
+    if (nowPlayingInfo?.radioStation) {
+      if (radioStationAudio.current !== null) {
+        radioStationAudio.current.play();
+        setPlaying(true);
+      } else {
+        const audio = new Audio(radioStationURL);
+        radioStationAudio.current = audio;
+        radioStationAudio.current.play();
+        setPlaying(true);
+      }
+      return;
+    }
     if (trackId === null || audioCtx === null) {
       return;
     }
@@ -143,16 +161,28 @@ const AudioContextProvider = ({ children }: any) => {
       source.current.buffer = currentBuffer.current;
     }
     audioCtx.resume();
-  }, [audioCtx, prepareAudio, manageQueueOnEnded, trackId]);
+  }, [
+    audioCtx,
+    prepareAudio,
+    manageQueueOnEnded,
+    trackId,
+    nowPlayingInfo,
+    radioStationURL,
+  ]);
 
   const stopTrack = () => {
     if (currentBuffer.current != null && audioCtx != null) {
       audioCtx.suspend();
     }
+    if (nowPlayingInfo?.radioStation) {
+      if (radioStationAudio.current) {
+        radioStationAudio.current.pause();
+      }
+      setPlaying(false);
+    }
   };
 
   useEffect(() => {
-    console.log("use effect: play track: ", queue);
     playTrack();
   }, [trackId]);
 
@@ -165,32 +195,36 @@ const AudioContextProvider = ({ children }: any) => {
   };
 
   const playPreviousTrack = () => {
-    console.log("play previous track");
-    console.log("queue length", queue.length);
-    //TODO: handle errors, cleanup, separate functions
     if (!source.current) {
       return;
     }
     source.current.disconnect();
-    if (queue.length === 1) {
-      console.log("play previous track: queue length === 1");
-      manageQueueOnEnded();
-    } else {
-      console.log("play previous track: queue length !== 1");
-      manageQueueOnPrevious();
-    }
+    manageQueueOnPrevious();
   };
 
   useEffect(() => {
-    console.log("use effect: on ended: ", queue);
     if (!source.current) {
       return;
     }
     source.current.onended = () => {
-      console.log("on ended");
       manageQueueOnEnded();
     };
   }, [manageQueueOnEnded, queue]);
+
+  function playRadioStation(name: string, url: string) {
+    if (radioStationAudio.current?.src) {
+      radioStationAudio.current.pause();
+      radioStationAudio.current.src = "";
+    }
+    radioStationAudio.current = null;
+    setNowPlayingInfo({
+      trackTitle: name,
+      trackArtist: "",
+      radioStation: true,
+    });
+    setRadioStationURL(url);
+    playTrack();
+  }
 
   return (
     <AudioPlayerContext.Provider
@@ -210,6 +244,7 @@ const AudioContextProvider = ({ children }: any) => {
         source: source.current,
         nowPlayingInfo,
         setNowPlayingInfo,
+        playRadioStation,
       }}
     >
       {children}

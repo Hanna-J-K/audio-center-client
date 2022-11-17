@@ -113,7 +113,11 @@ export function PlayerFooter() {
 
   useEffect(() => {
     socket.on("send-now-playing-info", (data) => {
-      setNowPlayingInfo({ trackTitle: data.title, trackArtist: data.artist });
+      setNowPlayingInfo({
+        trackTitle: data.title,
+        trackArtist: data.artist,
+        radioStation: false,
+      });
     });
     return () => {
       socket.off("send-now-playing-info");
@@ -135,9 +139,11 @@ export function PlayerFooter() {
                 <Title className={classes.track} order={2}>
                   Track: {nowPlayingInfo?.trackTitle}
                 </Title>
-                <Title className={classes.track} order={2}>
-                  Artist: {nowPlayingInfo?.trackArtist}
-                </Title>
+                {nowPlayingInfo?.radioStation ? null : (
+                  <Title className={classes.track} order={2}>
+                    Artist: {nowPlayingInfo?.trackArtist}
+                  </Title>
+                )}
               </Grid.Col>
             </Grid>
           </Center>

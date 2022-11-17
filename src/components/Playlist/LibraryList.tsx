@@ -108,9 +108,7 @@ const useStyles = createStyles((theme) => ({
 }));
 
 const savedToLibrary = (id: string) => {
-  console.log("id", id);
   socket.emit("save-to-library", id);
-  console.log("halo");
 };
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());

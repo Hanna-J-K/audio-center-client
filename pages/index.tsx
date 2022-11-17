@@ -23,7 +23,6 @@ export default function IndexPage() {
     });
     socket.on("send-track-info", (data) => {
       setQueue([...queue, data]);
-      console.log("queue", queue);
     });
     socket.on("send-track", (track: ITrack) => {
       setTrackId(track);

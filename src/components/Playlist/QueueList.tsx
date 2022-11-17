@@ -112,7 +112,6 @@ interface TableScrollAreaProps {
 }
 
 const savedToLibrary = (id: string) => {
-  console.log("id", id);
   socket.emit("save-to-library", id);
 };
 
@@ -123,7 +122,6 @@ export function QueueList({ queueListData }: TableScrollAreaProps) {
 
   const checkIfSaved = useCallback(
     (id: string) => {
-      console.log("checkIfSaved", library);
       if (
         library?.find((track) => {
           if (track !== null) {
