@@ -6,6 +6,7 @@ import {
   Grid,
   Title,
   Slider,
+  Button,
 } from "@mantine/core";
 import {
   IconPlayerPlay,
@@ -109,6 +110,8 @@ export function PlayerFooter() {
     playPreviousTrack,
     nowPlayingInfo,
     setNowPlayingInfo,
+    resumeQueue,
+    switchFromRadioToQueue,
   } = useAudio();
 
   useEffect(() => {
@@ -145,6 +148,17 @@ export function PlayerFooter() {
                   </Title>
                 )}
               </Grid.Col>
+              {resumeQueue ? (
+                <Grid.Col span="content">
+                  <Button
+                    type="button"
+                    className={classes.controls}
+                    onClick={switchFromRadioToQueue}
+                  >
+                    Resume Queue
+                  </Button>
+                </Grid.Col>
+              ) : null}
             </Grid>
           </Center>
         </Grid.Col>

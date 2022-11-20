@@ -5,6 +5,7 @@ import {
   ScrollArea,
   Text,
   ActionIcon,
+  useMantineTheme,
 } from "@mantine/core";
 import React from "react";
 import { IconDeviceFloppy } from "@tabler/icons";
@@ -28,7 +29,6 @@ const useStyles = createStyles((theme) => ({
         ? theme.colors.persianGreen[8]
         : theme.colors.persianGreen[0]
     }`,
-    // transition: "box-shadow 150ms ease",
 
     "&::after": {
       // eslint-disable-next-line prettier/prettier, quotes
@@ -68,6 +68,7 @@ const useStyles = createStyles((theme) => ({
       theme.colorScheme === "dark"
         ? theme.colors.sandyBrown[8]
         : theme.colors.sandyBrown[0],
+    fontWeight: 600,
   },
 
   tableRow: {
@@ -104,6 +105,12 @@ const useStyles = createStyles((theme) => ({
       backgroundColor: theme.colors.sandyBrown[3],
       borderColor: theme.colors.sandyBrown[3],
     },
+  },
+  pageTitle: {
+    marginTop: 25,
+    fontSize: 50,
+    textTransform: "uppercase",
+    fontWeight: 700,
   },
 }));
 
@@ -169,15 +176,23 @@ export function QueueList({ queueListData }: TableScrollAreaProps) {
       >
         <thead className={cx(classes.header, { [classes.scrolled]: scrolled })}>
           <tr>
-            <th style={{ color: "#2a9d8f" }}>
+            <th style={{ color: "#2a9d8f", fontSize: 20 }}>
               <Text>Title</Text>
             </th>
-            <th style={{ color: "#2a9d8f" }}>Artist</th>
-            <th style={{ color: "#2a9d8f" }}>Album</th>
-            <th style={{ color: "#2a9d8f" }}></th>
+            <th style={{ color: "#2a9d8f", fontSize: 20 }}>Artist</th>
+            <th style={{ color: "#2a9d8f", fontSize: 20 }}>Album</th>
+            <th style={{ color: "#2a9d8f", fontSize: 20 }}></th>
           </tr>
         </thead>
-        <tbody>{rows}</tbody>
+        {rows === undefined || rows.length === 0 ? (
+          <tbody>
+            <tr>
+              <td>Queue empty. Try searching for some music!</td>
+            </tr>
+          </tbody>
+        ) : (
+          <tbody>{rows}</tbody>
+        )}
       </Table>
     </ScrollArea>
   );

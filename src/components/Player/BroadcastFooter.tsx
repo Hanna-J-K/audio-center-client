@@ -10,11 +10,11 @@ import {
 import {
   IconPlayerSkipForward,
   IconPlayerSkipBack,
-  IconVolume,
-  IconVolumeOff,
   IconMusic,
   IconPlayerRecord,
   IconPlayerStop,
+  IconMicrophone,
+  IconMicrophoneOff,
 } from "@tabler/icons";
 import React, { useState } from "react";
 
@@ -137,7 +137,11 @@ export function BroadcastFooter() {
               className={classes.controls}
               size={72}
             >
-              {muted ? <IconVolumeOff size={48} /> : <IconVolume size={48} />}
+              {muted ? (
+                <IconMicrophone size={48} />
+              ) : (
+                <IconMicrophoneOff size={48} />
+              )}
             </ActionIcon>
           </Center>
         </Grid.Col>

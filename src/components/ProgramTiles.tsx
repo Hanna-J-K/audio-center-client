@@ -4,16 +4,13 @@ import {
   Group,
   SimpleGrid,
   UnstyledButton,
-  useMantineTheme,
   Text,
+  Center,
 } from "@mantine/core";
-import React, { useEffect, useRef } from "react";
+import React from "react";
 import { IRadioStationData, useAudio } from "./AudioPlayerContext";
 import useSWR from "swr";
 import { IconRadio } from "@tabler/icons";
-import { socket } from "./AudioPlayerContext";
-
-const PRIMARY_COL_HEIGHT = 300;
 
 const useStyles = createStyles((theme) => ({
   tile: {
@@ -26,6 +23,7 @@ const useStyles = createStyles((theme) => ({
       theme.colorScheme === "dark"
         ? theme.colors.charcoal[6]
         : theme.colors.charcoal[4],
+    minWidth: "80%",
   },
 
   grid: {
@@ -44,8 +42,9 @@ const useStyles = createStyles((theme) => ({
     fontWeight: 700,
     color:
       theme.colorScheme === "dark"
-        ? theme.colors.persianGreen[6]
-        : theme.colors.persianGreen[0],
+        ? theme.colors.sandyBrown[6]
+        : theme.colors.sandyBrown[1],
+    fontSize: theme.fontSizes.xl,
   },
 
   item: {
@@ -89,9 +88,7 @@ export function useRadioStation() {
 }
 
 export function ProgramTiles() {
-  const theme = useMantineTheme();
   const { classes } = useStyles();
-  const SECONDARY_COL_HEIGHT = PRIMARY_COL_HEIGHT / 2 - theme.spacing.md / 2;
 
   const { stations, mutate } = useRadioStation();
   const { playRadioStation } = useAudio();
@@ -110,13 +107,15 @@ export function ProgramTiles() {
   ));
 
   return (
-    <Card withBorder radius="md" className={classes.tile}>
-      <Group position="apart">
-        <Text className={classes.title}>Recommended Stations</Text>
-      </Group>
-      <SimpleGrid cols={3} mt="md">
-        {recommendedStations}
-      </SimpleGrid>
-    </Card>
+    <Center>
+      <Card withBorder radius="md" className={classes.tile}>
+        <Group position="apart">
+          <Text className={classes.title}>Recommended Stations</Text>
+        </Group>
+        <SimpleGrid cols={3} mt="md">
+          {recommendedStations}
+        </SimpleGrid>
+      </Card>
+    </Center>
   );
 }

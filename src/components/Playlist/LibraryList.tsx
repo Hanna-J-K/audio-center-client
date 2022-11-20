@@ -28,7 +28,6 @@ const useStyles = createStyles((theme) => ({
         ? theme.colors.persianGreen[8]
         : theme.colors.persianGreen[0]
     }`,
-    // transition: "box-shadow 150ms ease",
 
     "&::after": {
       // eslint-disable-next-line prettier/prettier, quotes
@@ -59,7 +58,7 @@ const useStyles = createStyles((theme) => ({
 
   scrollArea: {
     margin: "auto",
-    marginTop: 75,
+    marginTop: 50,
     height: "100%",
     maxWidth: "75%",
   },
@@ -104,6 +103,13 @@ const useStyles = createStyles((theme) => ({
       backgroundColor: theme.colors.sandyBrown[3],
       borderColor: theme.colors.sandyBrown[3],
     },
+  },
+
+  pageTitle: {
+    marginTop: 25,
+    fontSize: 50,
+    textTransform: "uppercase",
+    fontWeight: 700,
   },
 }));
 
@@ -158,15 +164,26 @@ export function LibraryList() {
       >
         <thead className={cx(classes.header, { [classes.scrolled]: scrolled })}>
           <tr>
-            <th style={{ color: "#2a9d8f" }}>
+            <th style={{ color: "#2a9d8f", fontSize: 20 }}>
               <Text>Title</Text>
             </th>
-            <th style={{ color: "#2a9d8f" }}>Artist</th>
-            <th style={{ color: "#2a9d8f" }}>Album</th>
-            <th style={{ color: "#2a9d8f" }}></th>
+            <th style={{ color: "#2a9d8f", fontSize: 20 }}>Artist</th>
+            <th style={{ color: "#2a9d8f", fontSize: 20 }}>Album</th>
+            <th style={{ color: "#2a9d8f", fontSize: 20 }}></th>
           </tr>
         </thead>
-        <tbody>{rows}</tbody>
+        {library === undefined || library?.length === 0 ? (
+          <tbody>
+            <tr>
+              <td>
+                No tracks in library. Tracks saved in the queue will show up
+                here!
+              </td>
+            </tr>
+          </tbody>
+        ) : (
+          <tbody>{rows}</tbody>
+        )}
       </Table>
     </ScrollArea>
   );

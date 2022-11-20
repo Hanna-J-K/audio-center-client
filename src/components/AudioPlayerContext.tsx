@@ -43,6 +43,10 @@ interface IAudioPlayerContext {
   nowPlayingInfo: INowPlayingInfo | null;
   setNowPlayingInfo: (nowPlayingInfo: INowPlayingInfo | null) => void;
   playRadioStation: (name: string, url: string) => void;
+  customStationURL: string;
+  setCustomStationURL: (customStationURL: string) => void;
+  resumeQueue: boolean;
+  switchFromRadioToQueue: () => void;
 }
 
 const AudioPlayerContext = createContext<IAudioPlayerContext | undefined>(
@@ -59,15 +63,16 @@ const AudioContextProvider = ({ children }: any) => {
   const [volume, setVolume] = useState(1);
   const [trackId, setTrackId] = useState<ITrack | null>(null);
   const [audioCtx, setAudioCtx] = useState<AudioContext | null>(null);
-  // const audioCtx = useMemo(() => new AudioContext(), []);
   const [playing, setPlaying] = useState(false);
   const [queue, setQueue] = useState<ITrackPlaylistData[]>([]);
   const [nowPlayingInfo, setNowPlayingInfo] = useState<INowPlayingInfo | null>(
     null,
   );
   const [trackHistory, setTrackHistory] = useState<ITrackPlaylistData[]>([]);
+  const [resumeQueue, setResumeQueue] = useState<boolean>(false);
   const [radioStationURL, setRadioStationURL] = useState<string>();
   const radioStationAudio = useRef<HTMLAudioElement | null>(null);
+  const [customStationURL, setCustomStationURL] = useState<string>("");
 
   const source = useRef<AudioBufferSourceNode | null>(null);
   const currentBuffer = useRef<AudioBuffer | null>(null);
@@ -132,7 +137,6 @@ const AudioContextProvider = ({ children }: any) => {
   }, [trackHistory]);
 
   const playTrack = useCallback(() => {
-    console.log(radioStationAudio.current);
     if (nowPlayingInfo?.radioStation) {
       if (radioStationAudio.current !== null) {
         radioStationAudio.current.play();
@@ -144,6 +148,9 @@ const AudioContextProvider = ({ children }: any) => {
         setPlaying(true);
       }
       return;
+    } else {
+      radioStationAudio.current?.pause();
+      radioStationAudio.current = null;
     }
     if (trackId === null || audioCtx === null) {
       return;
@@ -159,6 +166,7 @@ const AudioContextProvider = ({ children }: any) => {
       setPlaying(true);
     } else {
       source.current.buffer = currentBuffer.current;
+      setPlaying(true);
     }
     audioCtx.resume();
   }, [
@@ -183,6 +191,16 @@ const AudioContextProvider = ({ children }: any) => {
   };
 
   useEffect(() => {
+    setNowPlayingInfo((prev) => {
+      if (prev === null) {
+        return null;
+      }
+      return {
+        ...prev,
+        radioStation: false,
+      };
+    });
+    setResumeQueue(false);
     playTrack();
   }, [trackId]);
 
@@ -212,19 +230,46 @@ const AudioContextProvider = ({ children }: any) => {
   }, [manageQueueOnEnded, queue]);
 
   function playRadioStation(name: string, url: string) {
-    if (radioStationAudio.current?.src) {
-      radioStationAudio.current.pause();
-      radioStationAudio.current.src = "";
-    }
-    radioStationAudio.current = null;
-    setNowPlayingInfo({
+    const isRadioStation = true;
+    setNowPlayingInfo((prev) => ({
+      ...prev,
       trackTitle: name,
       trackArtist: "",
-      radioStation: true,
-    });
+      radioStation: isRadioStation,
+    }));
     setRadioStationURL(url);
-    playTrack();
+    setResumeQueue(true);
   }
+
+  function switchFromRadioToQueue() {
+    setNowPlayingInfo((prev) => ({
+      ...prev,
+      trackTitle: queue[0]?.title,
+      trackArtist: queue[0]?.artist,
+      radioStation: false,
+    }));
+    setResumeQueue(false);
+  }
+
+  useEffect(() => {
+    if (resumeQueue === false) {
+      setPlaying(true);
+      playTrack();
+    }
+  }, [resumeQueue]);
+
+  useEffect(() => {
+    if (nowPlayingInfo?.radioStation) {
+      audioCtx?.suspend();
+      if (source.current !== null) {
+        source.current.disconnect();
+        source.current.buffer = null;
+      }
+      radioStationAudio.current = null;
+
+      playTrack();
+    }
+  }, [nowPlayingInfo, audioCtx]);
 
   return (
     <AudioPlayerContext.Provider
@@ -245,6 +290,10 @@ const AudioContextProvider = ({ children }: any) => {
         nowPlayingInfo,
         setNowPlayingInfo,
         playRadioStation,
+        customStationURL,
+        setCustomStationURL,
+        resumeQueue,
+        switchFromRadioToQueue,
       }}
     >
       {children}

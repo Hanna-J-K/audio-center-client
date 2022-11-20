@@ -6,8 +6,19 @@ import { useAudio } from "../src/components/AudioPlayerContext";
 import type { ITrack } from "../src/components/AudioPlayerContext";
 import { QueueList } from "../src/components/Playlist/QueueList";
 import type { ITrackPlaylistData } from "../src/components/AudioPlayerContext";
+import { Center, Text, createStyles } from "@mantine/core";
+
+const useStyles = createStyles(() => ({
+  pageTitle: {
+    marginTop: 25,
+    fontSize: 50,
+    textTransform: "uppercase",
+    fontWeight: 700,
+  },
+}));
 
 export default function IndexPage() {
+  const { classes } = useStyles();
   const { queue, setQueue, setTrackId } = useAudio();
   const [searchTrackData, setSearchTrackData] = useState<
     Array<ITrackPlaylistData>
@@ -38,6 +49,9 @@ export default function IndexPage() {
 
   return (
     <div>
+      <Center>
+        <Text className={classes.pageTitle}>Music Queue</Text>
+      </Center>
       <SearchBar data={searchTrackData} />
       <QueueList queueListData={queue} />
       <PlayerFooter />

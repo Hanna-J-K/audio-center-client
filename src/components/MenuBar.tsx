@@ -8,7 +8,12 @@ import {
   Anchor,
 } from "@mantine/core";
 import Link from "next/link";
-import { IconFolder, IconRadio, IconBroadcast } from "@tabler/icons";
+import {
+  IconRadio,
+  IconBroadcast,
+  IconPlaylist,
+  IconHeadphones,
+} from "@tabler/icons";
 
 import React from "react";
 
@@ -75,9 +80,9 @@ export default function MenuBar() {
             <Anchor component="a" className={classes.links}>
               <Group className={classes.links} position="left">
                 <ActionIcon className={classes.icon} size={36}>
-                  <IconFolder size={48} />
+                  <IconPlaylist size={48} />
                 </ActionIcon>
-                <Title>Catalogue</Title>
+                <Title>Queue</Title>
               </Group>
             </Anchor>
           </Link>
@@ -87,7 +92,7 @@ export default function MenuBar() {
             <Anchor component="a" className={classes.links}>
               <Group className={classes.links} position="left">
                 <ActionIcon className={classes.icon} size={36}>
-                  <IconFolder size={48} />
+                  <IconHeadphones size={48} />
                 </ActionIcon>
                 <Title>Library</Title>
               </Group>

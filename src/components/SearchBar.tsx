@@ -44,7 +44,7 @@ const useStyles = createStyles((theme) => ({
   root: {
     marginLeft: "10%",
     marginRight: "10%",
-    marginTop: "5%",
+    marginTop: 40,
   },
 
   input: {
