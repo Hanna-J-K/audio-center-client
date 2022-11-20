@@ -26,6 +26,12 @@ export interface IRadioStationData {
   url: string;
 }
 
+export interface IBroadcastData {
+  id: string;
+  title: string;
+  author: string;
+}
+
 interface IAudioPlayerContext {
   playTrack: () => void;
   stopTrack: () => void;
@@ -47,6 +53,13 @@ interface IAudioPlayerContext {
   setCustomStationURL: (customStationURL: string) => void;
   resumeQueue: boolean;
   switchFromRadioToQueue: () => void;
+  isListeningToBroadcast: boolean;
+  setIsListeningToBroadcast: (isListeningToBroadcast: boolean) => void;
+  broadcastRoomId: string;
+  setBroadcastRoomId: (broadcastRoomId: string) => void;
+  playBroadcast: (title: string, author: string) => void;
+  joinBroadcastRoom: (broadcastRoomId: string) => void;
+  addCustomRadioStation: (url: string) => void;
 }
 
 const AudioPlayerContext = createContext<IAudioPlayerContext | undefined>(
@@ -76,6 +89,9 @@ const AudioContextProvider = ({ children }: any) => {
 
   const source = useRef<AudioBufferSourceNode | null>(null);
   const currentBuffer = useRef<AudioBuffer | null>(null);
+
+  const [isListeningToBroadcast, setIsListeningToBroadcast] = useState(false);
+  const [broadcastRoomId, setBroadcastRoomId] = useState<string>("");
 
   useEffect(() => {
     if (!window) {
@@ -117,6 +133,9 @@ const AudioContextProvider = ({ children }: any) => {
     const remaining = queue.slice(1);
     if (remaining.length === 0) {
       setPlaying(false);
+      currentBuffer.current = null;
+      source.current = null;
+      setTrackId(null);
     } else {
       const finishedTrack = queue[0];
       setTrackHistory((prev) => [...prev, finishedTrack]);
@@ -201,6 +220,7 @@ const AudioContextProvider = ({ children }: any) => {
       };
     });
     setResumeQueue(false);
+
     playTrack();
   }, [trackId]);
 
@@ -230,46 +250,65 @@ const AudioContextProvider = ({ children }: any) => {
   }, [manageQueueOnEnded, queue]);
 
   function playRadioStation(name: string, url: string) {
+    // stopTrack();
     const isRadioStation = true;
-    setNowPlayingInfo((prev) => ({
-      ...prev,
+    setNowPlayingInfo({
       trackTitle: name,
       trackArtist: "",
       radioStation: isRadioStation,
-    }));
+    });
     setRadioStationURL(url);
     setResumeQueue(true);
   }
 
+  useEffect(() => {
+    if (nowPlayingInfo?.radioStation) {
+      radioStationAudio.current = null;
+      audioCtx?.suspend();
+      source.current?.disconnect();
+      currentBuffer.current = null;
+      source.current = null;
+      playTrack();
+    }
+  }, [nowPlayingInfo, audioCtx]);
+
   function switchFromRadioToQueue() {
-    setNowPlayingInfo((prev) => ({
-      ...prev,
+    setNowPlayingInfo({
       trackTitle: queue[0]?.title,
       trackArtist: queue[0]?.artist,
       radioStation: false,
-    }));
+    });
     setResumeQueue(false);
   }
 
   useEffect(() => {
     if (resumeQueue === false) {
       setPlaying(true);
+
       playTrack();
     }
   }, [resumeQueue]);
 
-  useEffect(() => {
-    if (nowPlayingInfo?.radioStation) {
-      audioCtx?.suspend();
-      if (source.current !== null) {
-        source.current.disconnect();
-        source.current.buffer = null;
-      }
-      radioStationAudio.current = null;
-
-      playTrack();
+  function addCustomRadioStation(url: string) {
+    if (url !== "") {
+      socket.emit("add-custom-radio-station", url);
     }
-  }, [nowPlayingInfo, audioCtx]);
+  }
+
+  function playBroadcast(title: string, author: string) {
+    setNowPlayingInfo({
+      trackTitle: title,
+      trackArtist: author,
+      radioStation: false,
+    });
+    setIsListeningToBroadcast(true);
+  }
+
+  function joinBroadcastRoom(broadcastRoomId: string) {
+    if (broadcastRoomId !== "") {
+      socket.emit("join-broadcast-room", broadcastRoomId);
+    }
+  }
 
   return (
     <AudioPlayerContext.Provider
@@ -294,6 +333,13 @@ const AudioContextProvider = ({ children }: any) => {
         setCustomStationURL,
         resumeQueue,
         switchFromRadioToQueue,
+        isListeningToBroadcast,
+        setIsListeningToBroadcast,
+        broadcastRoomId,
+        setBroadcastRoomId,
+        playBroadcast,
+        joinBroadcastRoom,
+        addCustomRadioStation,
       }}
     >
       {children}

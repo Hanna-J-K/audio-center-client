@@ -8,7 +8,7 @@ import {
   Center,
 } from "@mantine/core";
 import React from "react";
-import { IRadioStationData, useAudio } from "./AudioPlayerContext";
+import { IRadioStationData, useAudio } from "../AudioPlayerContext";
 import useSWR from "swr";
 import { IconRadio } from "@tabler/icons";
 
@@ -45,6 +45,7 @@ const useStyles = createStyles((theme) => ({
         ? theme.colors.sandyBrown[6]
         : theme.colors.sandyBrown[1],
     fontSize: theme.fontSizes.xl,
+    textTransform: "uppercase",
   },
 
   item: {
@@ -87,7 +88,7 @@ export function useRadioStation() {
   };
 }
 
-export function ProgramTiles() {
+export function RadioTiles() {
   const { classes } = useStyles();
 
   const { stations, mutate } = useRadioStation();

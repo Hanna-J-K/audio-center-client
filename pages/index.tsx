@@ -4,7 +4,7 @@ import { PlayerFooter } from "../src/components/Player/PlayerFooter";
 import { socket } from "../src/components/AudioPlayerContext";
 import { useAudio } from "../src/components/AudioPlayerContext";
 import type { ITrack } from "../src/components/AudioPlayerContext";
-import { QueueList } from "../src/components/Playlist/QueueList";
+import { QueueList } from "../src/components/Tracklist/QueueList";
 import type { ITrackPlaylistData } from "../src/components/AudioPlayerContext";
 import { Center, Text, createStyles } from "@mantine/core";
 
@@ -35,7 +35,10 @@ export default function IndexPage() {
     socket.on("send-track-info", (data) => {
       setQueue([...queue, data]);
     });
+
     socket.on("send-track", (track: ITrack) => {
+      console.log("czyzby");
+      console.log("track", track);
       setTrackId(track);
     });
 

@@ -15,19 +15,6 @@ import { IRadioStationData, socket, useAudio } from "../AudioPlayerContext";
 import { IconRadio } from "@tabler/icons";
 
 const useStyles = createStyles((theme) => ({
-  dropdown: {
-    backgroundColor:
-      theme.colorScheme === "dark"
-        ? theme.colors.charcoal[6]
-        : theme.colors.charcoal[4],
-    borderWidth: 1,
-    borderColor:
-      theme.colorScheme === "dark"
-        ? theme.colors.sandyBrown[6]
-        : theme.colors.sandyBrown[1],
-    justifyContent: "space-evenly",
-  },
-
   label: {
     color:
       theme.colorScheme === "dark"
@@ -95,6 +82,7 @@ const useStyles = createStyles((theme) => ({
     },
     minWidth: "15%",
     marginBottom: theme.spacing.xl,
+    textTransform: "uppercase",
   },
 
   item: {
@@ -130,6 +118,7 @@ const useStyles = createStyles((theme) => ({
       theme.colorScheme === "dark"
         ? theme.colors.sandyBrown[6]
         : theme.colors.sandyBrown[1],
+    textTransform: "uppercase",
   },
 
   tile: {
@@ -148,16 +137,14 @@ const useStyles = createStyles((theme) => ({
   },
 }));
 
-function addCustomRadioStation(url: string) {
-  if (url !== "") {
-    socket.emit("add-custom-radio-station", url);
-  }
-}
-
 export function RadioStationBrowser() {
   const { classes } = useStyles();
-  const { customStationURL, setCustomStationURL, playRadioStation } =
-    useAudio();
+  const {
+    customStationURL,
+    setCustomStationURL,
+    playRadioStation,
+    addCustomRadioStation,
+  } = useAudio();
   const [customRadioStations, setCustomRadioStations] = useState<
     IRadioStationData[] | null
   >(null);

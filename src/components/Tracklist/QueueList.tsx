@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import {
   createStyles,
   Table,
@@ -8,8 +8,8 @@ import {
 } from "@mantine/core";
 import React from "react";
 import { IconDeviceFloppy } from "@tabler/icons";
-import { ITrackPlaylistData, socket } from "../AudioPlayerContext";
-import useSWR from "swr";
+import { socket } from "../AudioPlayerContext";
+import { useLibrary } from "./LibraryList";
 
 const useStyles = createStyles((theme) => ({
   header: {
@@ -58,7 +58,7 @@ const useStyles = createStyles((theme) => ({
 
   scrollArea: {
     margin: "auto",
-    marginTop: 50,
+    marginTop: 75,
     height: "100%",
     maxWidth: "75%",
   },
@@ -67,6 +67,7 @@ const useStyles = createStyles((theme) => ({
       theme.colorScheme === "dark"
         ? theme.colors.sandyBrown[8]
         : theme.colors.sandyBrown[0],
+    fontWeight: 600,
   },
 
   tableRow: {
@@ -104,7 +105,6 @@ const useStyles = createStyles((theme) => ({
       borderColor: theme.colors.sandyBrown[3],
     },
   },
-
   pageTitle: {
     marginTop: 25,
     fontSize: 50,
@@ -113,29 +113,38 @@ const useStyles = createStyles((theme) => ({
   },
 }));
 
+interface TableScrollAreaProps {
+  queueListData: { id: string; title: string; artist: string; album: string }[];
+}
+
 const savedToLibrary = (id: string) => {
   socket.emit("save-to-library", id);
 };
 
-const fetcher = (url: string) => fetch(url).then((res) => res.json());
-
-export function useLibrary() {
-  const { data, mutate } = useSWR<Array<ITrackPlaylistData>>(
-    "http://localhost:3000/library",
-    fetcher,
-  );
-  return {
-    library: data,
-    mutate: mutate,
-  };
-}
-
-export function LibraryList() {
+export function QueueList({ queueListData }: TableScrollAreaProps) {
   const { classes, cx } = useStyles();
   const [scrolled, setScrolled] = useState(false);
   const { library, mutate } = useLibrary();
 
-  const rows = library?.map((row) => (
+  const checkIfSaved = useCallback(
+    (id: string) => {
+      if (
+        library?.find((track) => {
+          if (track !== null) {
+            track.id === id;
+          }
+        })
+      ) {
+        return true;
+      } else {
+        return false;
+      }
+    },
+
+    [library],
+  );
+
+  const rows = queueListData.map((row) => (
     <tr key={row.title} className={classes.tableRow}>
       <td style={{ borderBottom: "1px solid #2a9d8f" }}>{row.title}</td>
       <td style={{ borderBottom: "1px solid #2a9d8f" }}>{row.artist}</td>
@@ -143,7 +152,9 @@ export function LibraryList() {
       <td style={{ borderBottom: "1px solid #2a9d8f" }}>
         <ActionIcon
           onClick={() => savedToLibrary(row.id)}
-          className={classes.iconSaved}
+          className={
+            checkIfSaved(row.id) ? classes.iconSaved : classes.iconUnsaved
+          }
         >
           <IconDeviceFloppy />
         </ActionIcon>
@@ -172,13 +183,10 @@ export function LibraryList() {
             <th style={{ color: "#2a9d8f", fontSize: 20 }}></th>
           </tr>
         </thead>
-        {library === undefined || library?.length === 0 ? (
+        {rows === undefined || rows.length === 0 ? (
           <tbody>
             <tr>
-              <td>
-                No tracks in library. Tracks saved in the queue will show up
-                here!
-              </td>
+              <td>Queue empty. Try searching for some music!</td>
             </tr>
           </tbody>
         ) : (

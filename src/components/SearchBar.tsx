@@ -126,6 +126,7 @@ export function SearchBar({ data }: SearchBarProps) {
         if (trackId === null) {
           socket.emit("send-track-source", item);
         }
+        console.log("searchfortrackass gsdg");
         socket.emit("search-for-track", item);
       }}
       nothingFound="There seems to be nothing here matching your search..."

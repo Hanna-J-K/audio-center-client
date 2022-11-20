@@ -63,6 +63,17 @@ const useStyles = createStyles((theme) => ({
           : theme.colors.charcoal[3],
       border: "none",
     },
+    "&:disabled": {
+      backgroundColor:
+        theme.colorScheme === "dark"
+          ? theme.colors.charcoal[8]
+          : theme.colors.charcoal[1],
+      color:
+        theme.colorScheme === "dark"
+          ? theme.colors.gray[8]
+          : theme.colors.gray[7],
+      border: "none",
+    },
   },
   track: {
     color:
@@ -164,7 +175,11 @@ export function PlayerFooter() {
         </Grid.Col>
         <Grid.Col span={4}>
           <Center>
-            <ActionIcon className={classes.controls} size={72}>
+            <ActionIcon
+              disabled={nowPlayingInfo?.radioStation ? true : false}
+              className={classes.controls}
+              size={72}
+            >
               <IconPlayerSkipBack onClick={playPreviousTrack} size={48} />
             </ActionIcon>
             <ActionIcon
@@ -178,7 +193,11 @@ export function PlayerFooter() {
                 <IconPlayerPlay onClick={playTrack} size={48} />
               )}
             </ActionIcon>
-            <ActionIcon className={classes.controls} size={72}>
+            <ActionIcon
+              disabled={nowPlayingInfo?.radioStation ? true : false}
+              className={classes.controls}
+              size={72}
+            >
               <IconPlayerSkipForward onClick={playNextTrack} size={48} />
             </ActionIcon>
           </Center>

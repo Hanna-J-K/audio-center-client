@@ -1,5 +1,5 @@
 import React from "react";
-import { LibraryList } from "../src/components/Playlist/LibraryList";
+import { LibraryList } from "../src/components/Tracklist/LibraryList";
 import { PlayerFooter } from "../src/components/Player/PlayerFooter";
 import { Center, Text, createStyles } from "@mantine/core";
 

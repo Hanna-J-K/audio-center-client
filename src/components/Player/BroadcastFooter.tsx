@@ -5,16 +5,16 @@ import {
   Center,
   Grid,
   Title,
-  Container,
 } from "@mantine/core";
 import {
   IconPlayerSkipForward,
   IconPlayerSkipBack,
-  IconMusic,
   IconPlayerRecord,
   IconPlayerStop,
   IconMicrophone,
   IconMicrophoneOff,
+  IconBroadcast,
+  IconBroadcastOff,
 } from "@tabler/icons";
 import React, { useState } from "react";
 
@@ -60,6 +60,17 @@ const useStyles = createStyles((theme) => ({
           : theme.colors.charcoal[3],
       border: "none",
     },
+    "&:disabled": {
+      backgroundColor:
+        theme.colorScheme === "dark"
+          ? theme.colors.charcoal[8]
+          : theme.colors.charcoal[1],
+      color:
+        theme.colorScheme === "dark"
+          ? theme.colors.gray[8]
+          : theme.colors.gray[7],
+      border: "none",
+    },
   },
   track: {
     color:
@@ -93,20 +104,36 @@ export function BroadcastFooter() {
 
   return (
     <Footer className={classes.footer} height={125}>
-      <Grid style={{ justifyItems: "center" }}>
-        <Grid.Col span={4} style={{ justifyItems: "center" }}>
+      <Grid align="center">
+        <Grid.Col span={4}>
           <Center>
-            <Container>
-              <ActionIcon className={classes.icon} size={36}>
-                <IconMusic size={48} />
-              </ActionIcon>
-              <Title className={classes.track} order={2}>
-                Track
-              </Title>
-              <Title className={classes.track} order={2}>
-                Artist
-              </Title>
-            </Container>
+            {recording ? (
+              <Grid align="center">
+                <Grid.Col span="auto">
+                  <ActionIcon className={classes.icon} size={36}>
+                    <IconBroadcast size={48} />
+                  </ActionIcon>
+                </Grid.Col>
+                <Grid.Col span="content">
+                  <Title className={classes.track} order={2}>
+                    Broadcast is on!
+                  </Title>
+                </Grid.Col>
+              </Grid>
+            ) : (
+              <Grid align="center">
+                <Grid.Col span="auto">
+                  <ActionIcon className={classes.icon} size={36}>
+                    <IconBroadcastOff size={48} />
+                  </ActionIcon>
+                </Grid.Col>
+                <Grid.Col span="content">
+                  <Title className={classes.track} order={2}>
+                    You are not broadcasting
+                  </Title>
+                </Grid.Col>
+              </Grid>
+            )}
           </Center>
         </Grid.Col>
         <Grid.Col span={4}>

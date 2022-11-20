@@ -1,8 +1,8 @@
 import { Center, Text, createStyles } from "@mantine/core";
 import React from "react";
 import { PlayerFooter } from "../src/components/Player/PlayerFooter";
-import { ProgramTiles } from "../src/components/ProgramTiles";
-import { RadioStationBrowser } from "../src/components/Radio/RadioStationBrowser";
+import { RadioTiles } from "../src/components/Radio/RadioTiles";
+import { RadioStationBrowser } from "../src/components/Radio/RadioStationPanel";
 
 const useStyles = createStyles(() => ({
   pageTitle: {
@@ -20,7 +20,7 @@ export default function RadioPage() {
       <Center>
         <Text className={classes.pageTitle}>Online Radio Stations </Text>
       </Center>
-      <ProgramTiles />
+      <RadioTiles />
       <RadioStationBrowser />
       <PlayerFooter />
     </>
