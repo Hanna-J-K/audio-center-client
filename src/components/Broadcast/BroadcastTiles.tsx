@@ -98,7 +98,7 @@ export function BroadcastTiles() {
     <UnstyledButton
       key={station.id}
       className={classes.item}
-      onClick={() => playBroadcast(station.title, station.author)}
+      onClick={() => playBroadcast(station.title, station.author, "")}
     >
       <IconRadio size={36} />
       <Text size="md" mt={7}>

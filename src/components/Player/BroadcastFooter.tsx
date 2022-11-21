@@ -17,6 +17,7 @@ import {
   IconBroadcastOff,
 } from "@tabler/icons";
 import React, { useState } from "react";
+import { useAudio } from "../AudioPlayerContext";
 
 const useStyles = createStyles((theme) => ({
   footer: {
@@ -99,8 +100,8 @@ const useStyles = createStyles((theme) => ({
 
 export function BroadcastFooter() {
   const { classes } = useStyles();
-  const [recording, setRecording] = useState(false);
   const [muted, setMuted] = useState(false);
+  const { startRecording, stopRecording, recording, setRecording } = useAudio();
 
   return (
     <Footer className={classes.footer} height={125}>
@@ -147,9 +148,9 @@ export function BroadcastFooter() {
               size={72}
             >
               {recording ? (
-                <IconPlayerStop size={48} />
+                <IconPlayerStop size={48} onClick={stopRecording} />
               ) : (
-                <IconPlayerRecord size={48} />
+                <IconPlayerRecord size={48} onClick={startRecording} />
               )}
             </ActionIcon>
             <ActionIcon disabled={true} className={classes.controls} size={72}>

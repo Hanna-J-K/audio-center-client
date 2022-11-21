@@ -32,6 +32,13 @@ export interface IBroadcastData {
   author: string;
 }
 
+export interface IBroadcastSessionData {
+  id: string;
+  title: string;
+  author: string;
+  url: string;
+}
+
 interface IAudioPlayerContext {
   playTrack: () => void;
   stopTrack: () => void;
@@ -57,9 +64,19 @@ interface IAudioPlayerContext {
   setIsListeningToBroadcast: (isListeningToBroadcast: boolean) => void;
   broadcastRoomId: string;
   setBroadcastRoomId: (broadcastRoomId: string) => void;
-  playBroadcast: (title: string, author: string) => void;
+  playBroadcast: (title: string, author: string, broadcastURL: string) => void;
   joinBroadcastRoom: (broadcastRoomId: string) => void;
   addCustomRadioStation: (url: string) => void;
+  recording: boolean;
+  setRecording: (recording: boolean) => void;
+  startRecording: () => void;
+  stopRecording: () => void;
+  broadcastSessionData: IBroadcastData | null;
+  setBroadcastSessionData: (
+    broadcastSessionData: IBroadcastData | null,
+  ) => void;
+  temporaryBroadcastURL: string;
+  setTemporaryBroadcastURL: (temporaryBroadcastURL: string) => void;
 }
 
 const AudioPlayerContext = createContext<IAudioPlayerContext | undefined>(
@@ -90,8 +107,17 @@ const AudioContextProvider = ({ children }: any) => {
   const source = useRef<AudioBufferSourceNode | null>(null);
   const currentBuffer = useRef<AudioBuffer | null>(null);
 
-  const [isListeningToBroadcast, setIsListeningToBroadcast] = useState(false);
+  const [isListeningToBroadcast, setIsListeningToBroadcast] = useState(true);
   const [broadcastRoomId, setBroadcastRoomId] = useState<string>("");
+  const [recording, setRecording] = useState(false);
+  const [recordingStream, setRecordingStream] = useState<MediaRecorder | null>(
+    null,
+  );
+  const [broadcastSessionData, setBroadcastSessionData] =
+    useState<IBroadcastData | null>(null);
+  const chunks: any = [];
+  const [temporaryBroadcastURL, setTemporaryBroadcastURL] =
+    useState<string>("");
 
   useEffect(() => {
     if (!window) {
@@ -295,19 +321,64 @@ const AudioContextProvider = ({ children }: any) => {
     }
   }
 
-  function playBroadcast(title: string, author: string) {
+  function playBroadcast(title: string, author: string, broadcastURL: string) {
     setNowPlayingInfo({
       trackTitle: title,
       trackArtist: author,
       radioStation: false,
     });
     setIsListeningToBroadcast(true);
+    const audio = new Audio(broadcastURL);
+    console.log(audio.src);
+    // radioStationAudio.current = audio;
+    // radioStationAudio.current.play();
   }
 
   function joinBroadcastRoom(broadcastRoomId: string) {
+    setIsListeningToBroadcast(true);
     if (broadcastRoomId !== "") {
       socket.emit("join-broadcast-room", broadcastRoomId);
     }
+  }
+
+  function startRecording() {
+    navigator.mediaDevices
+      .getUserMedia({ video: false, audio: true })
+      .then(handleRecording);
+  }
+
+  function handleRecording(stream: any) {
+    console.log("stream", stream);
+    setRecordingStream(new MediaRecorder(stream));
+    console.log("recordingStream", recordingStream);
+  }
+
+  useEffect(() => {
+    if (recordingStream) {
+      recordingStream.start();
+      setRecording(true);
+    }
+  }, [recordingStream]);
+
+  function stopRecording() {
+    if (recordingStream) {
+      recordingStream.stop();
+      recordingStream.onstop = (e) => {
+        console.log("recording stopped", e);
+      };
+      recordingStream.ondataavailable = (e) => {
+        if (e.data.size > 0) {
+          console.log("sdkguhdfg", e.data);
+          chunks.push(e.data);
+          console.log(chunks);
+        }
+      };
+    }
+    const blob = new Blob(chunks, { type: "audio/ogg; codecs=opus" });
+    const audioURL = window.URL.createObjectURL(blob);
+    setTemporaryBroadcastURL(audioURL);
+    console.log("typeof", typeof audioURL);
+    // socket.emit("send-broadcast", audioURL);
   }
 
   return (
@@ -340,6 +411,14 @@ const AudioContextProvider = ({ children }: any) => {
         playBroadcast,
         joinBroadcastRoom,
         addCustomRadioStation,
+        recording,
+        setRecording,
+        startRecording,
+        stopRecording,
+        broadcastSessionData,
+        setBroadcastSessionData,
+        temporaryBroadcastURL,
+        setTemporaryBroadcastURL,
       }}
     >
       {children}

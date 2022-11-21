@@ -1,6 +1,18 @@
-import { createStyles, TextInput, Center, Button } from "@mantine/core";
-import React from "react";
-import { useAudio } from "../AudioPlayerContext";
+import {
+  createStyles,
+  TextInput,
+  Center,
+  Button,
+  Group,
+  Text,
+  UnstyledButton,
+  SimpleGrid,
+  Card,
+} from "@mantine/core";
+import React, { useEffect, useState } from "react";
+import { socket, useAudio, IBroadcastSessionData } from "../AudioPlayerContext";
+import { v4 as uuidv4 } from "uuid";
+import { IconRadio } from "@tabler/icons";
 
 const useStyles = createStyles((theme) => ({
   label: {
@@ -127,7 +139,59 @@ const useStyles = createStyles((theme) => ({
 
 export function BroadcastPanel() {
   const { classes } = useStyles();
-  const { broadcastRoomId, setBroadcastRoomId, joinBroadcastRoom } = useAudio();
+  const {
+    broadcastRoomId,
+    setBroadcastRoomId,
+    joinBroadcastRoom,
+    broadcastSessionData,
+    setBroadcastSessionData,
+    isListeningToBroadcast,
+    setIsListeningToBroadcast,
+    playBroadcast,
+    setTemporaryBroadcastURL,
+    temporaryBroadcastURL,
+  } = useAudio();
+  const [broadcastRoomName, setBroadcastRoomName] = useState("");
+  const [customBroadcasts, setCustomBroadcasts] = useState<
+    IBroadcastSessionData[] | null
+  >(null);
+  const [audioElement, setAudioElement] = useState<boolean>(false);
+
+  function prepareBroadcastSession() {
+    setIsListeningToBroadcast(false);
+    setBroadcastRoomName(
+      broadcastSessionData?.title + "-" + broadcastSessionData?.id.slice(0, 8),
+    );
+    socket.emit("create-user-broadcast-room", broadcastRoomName);
+  }
+
+  const recordedBroadcasts = customBroadcasts?.map((broadcast) => (
+    <>
+      <UnstyledButton key={broadcast.id} className={classes.item}>
+        <IconRadio size={36} />
+        <Text size="md" mt={7}>
+          {broadcast.title}
+        </Text>
+        <audio controls={true} src={broadcast.url} />
+      </UnstyledButton>
+    </>
+  ));
+
+  useEffect(() => {
+    socket.on("get-custom-broadcasts", (data: IBroadcastSessionData[]) => {
+      console.log("halo");
+      console.log(data);
+      setCustomBroadcasts(data);
+    });
+    return () => {
+      socket.off("get-custom-broadcasts");
+    };
+  });
+
+  useEffect(() => {
+    setAudioElement(true);
+    console.log("audio element", temporaryBroadcastURL);
+  }, [setTemporaryBroadcastURL, temporaryBroadcastURL]);
   return (
     <>
       <TextInput
@@ -150,6 +214,61 @@ export function BroadcastPanel() {
         >
           Join broadcast
         </Button>
+      </Center>
+      <TextInput
+        classNames={{
+          input: classes.input,
+          label: classes.label,
+          root: classes.root,
+        }}
+        label="Start recording by entering session name and generating room name!"
+        placeholder="Enter broadcast session name here"
+        value={broadcastSessionData?.title}
+        onChange={(event) =>
+          setBroadcastSessionData({
+            id: uuidv4(),
+            title: event.currentTarget.value,
+            author: "Anonymous",
+          })
+        }
+      />
+      <Center>
+        <Button
+          type="button"
+          className={classes.button}
+          size="md"
+          onClick={prepareBroadcastSession}
+        >
+          Generate room name
+        </Button>
+      </Center>
+      {isListeningToBroadcast ? null : (
+        <Center>
+          <Text className={classes.label}>
+            Your session room name: {broadcastRoomName}
+          </Text>
+        </Center>
+      )}
+      <Center>
+        <Card withBorder radius="md" className={classes.tile}>
+          <Group position="apart">
+            <Text className={classes.title}>Your Recorded Sessions</Text>
+          </Group>
+          {audioElement ? (
+            <SimpleGrid cols={3} mt="md">
+              <audio src={temporaryBroadcastURL} controls={true} />
+            </SimpleGrid>
+          ) : (
+            <Center>
+              <Text className={classes.label}>
+                {" "}
+                {`
+              No recorder sessions yet. Record your first session by entering a session name and generating a room name!
+              `}
+              </Text>
+            </Center>
+          )}
+        </Card>
       </Center>
     </>
   );
