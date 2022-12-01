@@ -8,11 +8,16 @@ import {
   UnstyledButton,
   SimpleGrid,
   Card,
+  ActionIcon,
 } from "@mantine/core";
-import React, { useEffect, useState } from "react";
-import { socket, useAudio, IBroadcastSessionData } from "../AudioPlayerContext";
+import React, { useEffect, useRef, useState } from "react";
+import {
+  socket,
+  useAudio,
+  IBroadcastRecordingData,
+} from "../AudioPlayerContext";
 import { v4 as uuidv4 } from "uuid";
-import { IconRadio } from "@tabler/icons";
+import { IconRadio, IconUpload } from "@tabler/icons";
 
 const useStyles = createStyles((theme) => ({
   label: {
@@ -83,6 +88,7 @@ const useStyles = createStyles((theme) => ({
     minWidth: "15%",
     marginBottom: theme.spacing.xl,
     textTransform: "uppercase",
+    marginLeft: theme.spacing.xl,
   },
 
   item: {
@@ -147,51 +153,62 @@ export function BroadcastPanel() {
     setBroadcastSessionData,
     isListeningToBroadcast,
     setIsListeningToBroadcast,
-    playBroadcast,
-    setTemporaryBroadcastURL,
-    temporaryBroadcastURL,
+    recordedAudioURL,
+    setRecordedAudioURL,
   } = useAudio();
-  const [broadcastRoomName, setBroadcastRoomName] = useState("");
   const [customBroadcasts, setCustomBroadcasts] = useState<
-    IBroadcastSessionData[] | null
+    IBroadcastRecordingData[] | null
   >(null);
-  const [audioElement, setAudioElement] = useState<boolean>(false);
+  const [shouldShowUpload, setShouldShowUpload] = useState(false);
+  const uploadedBroadcasts = useRef<any>();
 
   function prepareBroadcastSession() {
     setIsListeningToBroadcast(false);
-    setBroadcastRoomName(
-      broadcastSessionData?.title + "-" + broadcastSessionData?.id.slice(0, 8),
-    );
-    socket.emit("create-user-broadcast-room", broadcastRoomName);
+    if (broadcastSessionData !== null) {
+      const broadcastSessionRoomName =
+        broadcastSessionData.title + "-" + broadcastSessionData.id.slice(0, 8);
+      setBroadcastSessionData({
+        ...broadcastSessionData,
+        room: broadcastSessionRoomName,
+      });
+    }
   }
 
-  const recordedBroadcasts = customBroadcasts?.map((broadcast) => (
-    <>
-      <UnstyledButton key={broadcast.id} className={classes.item}>
-        <IconRadio size={36} />
-        <Text size="md" mt={7}>
-          {broadcast.title}
-        </Text>
-        <audio controls={true} src={broadcast.url} />
-      </UnstyledButton>
-    </>
-  ));
-
   useEffect(() => {
-    socket.on("get-custom-broadcasts", (data: IBroadcastSessionData[]) => {
-      console.log("halo");
-      console.log(data);
+    socket.on("get-custom-broadcasts", (data: IBroadcastRecordingData[]) => {
       setCustomBroadcasts(data);
+
+      if (customBroadcasts) {
+        uploadedBroadcasts.current = customBroadcasts?.map((broadcast) => (
+          <div key={broadcast.id} className={classes.item}>
+            <div className={classes.title}>{broadcast.title}</div>
+          </div>
+        ));
+      }
     });
     return () => {
       socket.off("get-custom-broadcasts");
     };
   });
 
-  useEffect(() => {
-    setAudioElement(true);
-    console.log("audio element", temporaryBroadcastURL);
-  }, [setTemporaryBroadcastURL, temporaryBroadcastURL]);
+  function handleFinishedBroadcast() {
+    setShouldShowUpload(false);
+    setRecordedAudioURL(null);
+  }
+
+  function uploadBroadcast() {
+    if (recordedAudioURL) {
+      const data = {
+        id: broadcastSessionData?.id,
+        title: broadcastSessionData?.title,
+        artist: "Anonymous",
+        url: recordedAudioURL,
+      };
+      socket.emit("upload-custom-broadcast", data);
+      setRecordedAudioURL(null);
+    }
+  }
+
   return (
     <>
       <TextInput
@@ -202,7 +219,7 @@ export function BroadcastPanel() {
         }}
         label="Or you can join an active room!"
         placeholder="Paste broadcast room ID here"
-        value={broadcastRoomId}
+        value={broadcastRoomId !== null ? broadcastRoomId : ""}
         onChange={(event) => setBroadcastRoomId(event.currentTarget.value)}
       />
       <Center>
@@ -210,7 +227,9 @@ export function BroadcastPanel() {
           type="button"
           className={classes.button}
           size="md"
-          onClick={() => joinBroadcastRoom(broadcastRoomId)}
+          onClick={() =>
+            broadcastRoomId !== null ? joinBroadcastRoom(broadcastRoomId) : null
+          }
         >
           Join broadcast
         </Button>
@@ -229,6 +248,7 @@ export function BroadcastPanel() {
             id: uuidv4(),
             title: event.currentTarget.value,
             author: "Anonymous",
+            room: null,
           })
         }
       />
@@ -245,18 +265,61 @@ export function BroadcastPanel() {
       {isListeningToBroadcast ? null : (
         <Center>
           <Text className={classes.label}>
-            Your session room name: {broadcastRoomName}
+            Your session room name: {broadcastSessionData?.room}
           </Text>
         </Center>
       )}
       <Center>
         <Card withBorder radius="md" className={classes.tile}>
           <Group position="apart">
-            <Text className={classes.title}>Your Recorded Sessions</Text>
+            <Text className={classes.title}>Your Recorded Session</Text>
           </Group>
-          {audioElement ? (
+          {recordedAudioURL !== null ? (
             <SimpleGrid cols={3} mt="md">
-              <audio src={temporaryBroadcastURL} controls={true} />
+              <Card withBorder radius="md" className={classes.tile}>
+                <Group position="apart">
+                  <UnstyledButton className={classes.item}>
+                    <IconRadio size={36} />
+                    <Text size="md" mt={7}>
+                      {broadcastSessionData?.room}
+                    </Text>
+                    <audio controls={true} src={recordedAudioURL} />
+                  </UnstyledButton>
+                  <Center>
+                    <Text className={classes.label}>
+                      Do you want to upload this recording and make it public?
+                    </Text>
+                  </Center>
+                  <Center>
+                    <Button
+                      type="button"
+                      className={classes.button}
+                      size="md"
+                      onClick={() => setShouldShowUpload(true)}
+                    >
+                      Yes
+                    </Button>
+                    <Button
+                      type="button"
+                      className={classes.button}
+                      size="md"
+                      onClick={handleFinishedBroadcast}
+                    >
+                      No
+                    </Button>
+                  </Center>
+                  {shouldShowUpload ? (
+                    <Center className={classes.tile}>
+                      <ActionIcon
+                        className={classes.item}
+                        onClick={uploadBroadcast}
+                      >
+                        <IconUpload size={36} />
+                      </ActionIcon>
+                    </Center>
+                  ) : null}
+                </Group>
+              </Card>
             </SimpleGrid>
           ) : (
             <Center>
@@ -270,6 +333,16 @@ export function BroadcastPanel() {
           )}
         </Card>
       </Center>
+      <Card withBorder radius="md" className={classes.tile}>
+        <Group position="apart">
+          <Text className={classes.title}>Your Uploaded Sessions</Text>
+        </Group>
+      </Card>
+      {uploadedBroadcasts !== null ? (
+        <SimpleGrid>{uploadedBroadcasts.current}</SimpleGrid>
+      ) : (
+        <Text>You did not upload any recorded broadcasts yet.</Text>
+      )}
     </>
   );
 }

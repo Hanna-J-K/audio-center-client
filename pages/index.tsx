@@ -37,8 +37,6 @@ export default function IndexPage() {
     });
 
     socket.on("send-track", (track: ITrack) => {
-      console.log("czyzby");
-      console.log("track", track);
       setTrackId(track);
     });
 

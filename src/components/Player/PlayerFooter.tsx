@@ -113,15 +113,15 @@ export function PlayerFooter() {
   const {
     playTrack,
     stopTrack,
-    playing,
-    setPlaying,
+    isPlaying,
+    setIsPlaying,
     setVolume,
     volume,
     playNextTrack,
     playPreviousTrack,
     nowPlayingInfo,
     setNowPlayingInfo,
-    resumeQueue,
+    showResumeQueue,
     switchFromRadioToQueue,
   } = useAudio();
 
@@ -159,7 +159,7 @@ export function PlayerFooter() {
                   </Title>
                 )}
               </Grid.Col>
-              {resumeQueue ? (
+              {showResumeQueue ? (
                 <Grid.Col span="content">
                   <Button
                     type="button"
@@ -183,11 +183,11 @@ export function PlayerFooter() {
               <IconPlayerSkipBack onClick={playPreviousTrack} size={48} />
             </ActionIcon>
             <ActionIcon
-              onClick={() => setPlaying(!playing)}
+              onClick={() => setIsPlaying(!isPlaying)}
               className={classes.controls}
               size={72}
             >
-              {playing ? (
+              {isPlaying ? (
                 <IconPlayerPause onClick={stopTrack} size={48} />
               ) : (
                 <IconPlayerPlay onClick={playTrack} size={48} />

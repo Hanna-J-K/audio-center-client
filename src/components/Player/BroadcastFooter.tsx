@@ -101,14 +101,15 @@ const useStyles = createStyles((theme) => ({
 export function BroadcastFooter() {
   const { classes } = useStyles();
   const [muted, setMuted] = useState(false);
-  const { startRecording, stopRecording, recording, setRecording } = useAudio();
+  const { startRecording, stopRecording, isRecording, setIsRecording } =
+    useAudio();
 
   return (
     <Footer className={classes.footer} height={125}>
       <Grid align="center">
         <Grid.Col span={4}>
           <Center>
-            {recording ? (
+            {isRecording ? (
               <Grid align="center">
                 <Grid.Col span="auto">
                   <ActionIcon className={classes.icon} size={36}>
@@ -143,11 +144,11 @@ export function BroadcastFooter() {
               <IconPlayerSkipBack size={48} />
             </ActionIcon>
             <ActionIcon
-              onClick={() => setRecording(!recording)}
+              onClick={() => setIsRecording(!isRecording)}
               className={classes.controls}
               size={72}
             >
-              {recording ? (
+              {isRecording ? (
                 <IconPlayerStop size={48} onClick={stopRecording} />
               ) : (
                 <IconPlayerRecord size={48} onClick={startRecording} />

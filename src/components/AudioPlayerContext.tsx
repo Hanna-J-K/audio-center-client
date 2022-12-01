@@ -8,6 +8,8 @@ import React, {
 } from "react";
 import { io } from "socket.io-client";
 
+export const socket = io("http://localhost:3000");
+
 export interface ITrackPlaylistData {
   id: string;
   title: string;
@@ -30,20 +32,26 @@ export interface IBroadcastData {
   id: string;
   title: string;
   author: string;
+  room: string | null;
 }
 
-export interface IBroadcastSessionData {
+export interface IBroadcastRecordingData {
   id: string;
   title: string;
   author: string;
   url: string;
 }
 
+export interface ITrack {
+  id: string;
+  source: ArrayBuffer;
+}
+
 interface IAudioPlayerContext {
   playTrack: () => void;
   stopTrack: () => void;
-  playing: boolean;
-  setPlaying: (playing: boolean) => void;
+  isPlaying: boolean;
+  setIsPlaying: (isPlaying: boolean) => void;
   volume: number;
   setVolume: (volume: number) => void;
   queue: ITrackPlaylistData[];
@@ -52,113 +60,118 @@ interface IAudioPlayerContext {
   setTrackId: (trackId: ITrack | null) => void;
   playNextTrack: () => void;
   playPreviousTrack: () => void;
-  source: AudioBufferSourceNode | null;
+  source: AudioBufferSourceNode | null | MediaStreamAudioSourceNode;
   nowPlayingInfo: INowPlayingInfo | null;
   setNowPlayingInfo: (nowPlayingInfo: INowPlayingInfo | null) => void;
   playRadioStation: (name: string, url: string) => void;
-  customStationURL: string;
+  customStationURL: string | null;
   setCustomStationURL: (customStationURL: string) => void;
-  resumeQueue: boolean;
+  showResumeQueue: boolean;
   switchFromRadioToQueue: () => void;
   isListeningToBroadcast: boolean;
   setIsListeningToBroadcast: (isListeningToBroadcast: boolean) => void;
-  broadcastRoomId: string;
+  broadcastRoomId: string | null;
   setBroadcastRoomId: (broadcastRoomId: string) => void;
   playBroadcast: (title: string, author: string, broadcastURL: string) => void;
   joinBroadcastRoom: (broadcastRoomId: string) => void;
   addCustomRadioStation: (url: string) => void;
-  recording: boolean;
-  setRecording: (recording: boolean) => void;
+  isRecording: boolean;
+  setIsRecording: (isRecording: boolean) => void;
   startRecording: () => void;
   stopRecording: () => void;
   broadcastSessionData: IBroadcastData | null;
   setBroadcastSessionData: (
     broadcastSessionData: IBroadcastData | null,
   ) => void;
-  temporaryBroadcastURL: string;
-  setTemporaryBroadcastURL: (temporaryBroadcastURL: string) => void;
+  recordedAudioURL: string | null;
+  setRecordedAudioURL: (recordedAudioURL: string | null) => void;
+  broadcastAudioURL: string | null;
 }
 
 const AudioPlayerContext = createContext<IAudioPlayerContext | undefined>(
   undefined,
 );
-export const socket = io("http://localhost:3000");
-
-export interface ITrack {
-  id: string;
-  source: ArrayBuffer;
-}
 
 const AudioContextProvider = ({ children }: any) => {
   const [volume, setVolume] = useState(1);
   const [trackId, setTrackId] = useState<ITrack | null>(null);
   const [audioCtx, setAudioCtx] = useState<AudioContext | null>(null);
-  const [playing, setPlaying] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const source = useRef<AudioBufferSourceNode | null>(null);
+  const currentBuffer = useRef<AudioBuffer | null>(null);
   const [queue, setQueue] = useState<ITrackPlaylistData[]>([]);
   const [nowPlayingInfo, setNowPlayingInfo] = useState<INowPlayingInfo | null>(
     null,
   );
   const [trackHistory, setTrackHistory] = useState<ITrackPlaylistData[]>([]);
-  const [resumeQueue, setResumeQueue] = useState<boolean>(false);
+  const [showResumeQueue, setShowResumeQueue] = useState<boolean>(false);
   const [radioStationURL, setRadioStationURL] = useState<string>();
   const radioStationAudio = useRef<HTMLAudioElement | null>(null);
-  const [customStationURL, setCustomStationURL] = useState<string>("");
-
-  const source = useRef<AudioBufferSourceNode | null>(null);
-  const currentBuffer = useRef<AudioBuffer | null>(null);
-
+  const [customStationURL, setCustomStationURL] = useState<string | null>(null);
   const [isListeningToBroadcast, setIsListeningToBroadcast] = useState(true);
-  const [broadcastRoomId, setBroadcastRoomId] = useState<string>("");
-  const [recording, setRecording] = useState(false);
+  const [broadcastRoomId, setBroadcastRoomId] = useState<string | null>(null);
+  const [isRecording, setIsRecording] = useState(false);
+  const recordedChunks = useRef<Blob[]>([]);
   const [recordingStream, setRecordingStream] = useState<MediaRecorder | null>(
     null,
   );
+  const [broadcastAudioURL, setBroadcastAudioURL] = useState<string | null>(
+    null,
+  );
+  const mediaStream = useRef<MediaStream | null>(null);
+  const broadcastMediaSource = useRef<MediaSource | null>(null);
+  const broadcastChunksQueue = useRef<Array<Blob>>([]);
+  const blob = useRef<Blob | null>(null);
+  const [recordedAudioURL, setRecordedAudioURL] = useState<string | null>(null);
   const [broadcastSessionData, setBroadcastSessionData] =
     useState<IBroadcastData | null>(null);
-  const chunks: any = [];
-  const [temporaryBroadcastURL, setTemporaryBroadcastURL] =
-    useState<string>("");
 
   useEffect(() => {
     if (!window) {
       return;
     }
+    broadcastMediaSource.current = new MediaSource();
     const newAudioCtx = new AudioContext();
     setAudioCtx(newAudioCtx);
     source.current = new AudioBufferSourceNode(newAudioCtx);
   }, []);
 
   const prepareAudio = useCallback(
-    (audioSource: ArrayBuffer) => {
+    (audioSource: ArrayBuffer | null) => {
       if (!audioCtx) {
         return;
       }
-      audioCtx.decodeAudioData(
-        audioSource.slice(0),
-        (buffer) => {
-          if (!source.current) {
-            return;
-          }
-          console.log("buffer", buffer);
-          currentBuffer.current = buffer;
-          source.current.buffer = buffer;
+      if (audioSource !== null) {
+        audioCtx.decodeAudioData(
+          audioSource.slice(0),
+          (buffer) => {
+            if (!source.current) {
+              return;
+            }
+            console.log("buffer", buffer);
+            if (source.current instanceof AudioBufferSourceNode) {
+              currentBuffer.current = buffer;
+              source.current.buffer = buffer;
 
-          source.current.connect(audioCtx.destination);
-          source.current.loop = false;
-        },
-        (e) => {
-          `Error with decoding audio data ${e}`;
-        },
-      );
+              source.current.connect(audioCtx.destination);
+              source.current.loop = false;
+            }
+          },
+          (e) => {
+            `Error with decoding audio data ${e}`;
+          },
+        );
+      }
     },
+
     [audioCtx],
   );
 
-  const manageQueueOnEnded = useCallback(() => {
+  const manageQueueOnNextTrack = useCallback(() => {
     currentBuffer.current = null;
     const remaining = queue.slice(1);
     if (remaining.length === 0) {
-      setPlaying(false);
+      setIsPlaying(false);
       currentBuffer.current = null;
       source.current = null;
       setTrackId(null);
@@ -170,10 +183,10 @@ const AudioContextProvider = ({ children }: any) => {
     setQueue(remaining);
   }, [queue]);
 
-  const manageQueueOnPrevious = useCallback(() => {
+  const manageQueueOnPreviousTrack = useCallback(() => {
     currentBuffer.current = null;
     if (trackHistory.length === 0) {
-      setPlaying(false);
+      setIsPlaying(false);
     } else {
       socket.emit("send-track-source", trackHistory[trackHistory.length - 1]);
       setQueue((prev) => [trackHistory[trackHistory.length - 1], ...prev]);
@@ -185,12 +198,12 @@ const AudioContextProvider = ({ children }: any) => {
     if (nowPlayingInfo?.radioStation) {
       if (radioStationAudio.current !== null) {
         radioStationAudio.current.play();
-        setPlaying(true);
+        setIsPlaying(true);
       } else {
         const audio = new Audio(radioStationURL);
         radioStationAudio.current = audio;
         radioStationAudio.current.play();
-        setPlaying(true);
+        setIsPlaying(true);
       }
       return;
     } else {
@@ -203,21 +216,21 @@ const AudioContextProvider = ({ children }: any) => {
     socket.emit("get-now-playing-info", trackId.id);
     source.current = new AudioBufferSourceNode(audioCtx);
     source.current.onended = () => {
-      manageQueueOnEnded();
+      manageQueueOnNextTrack();
     };
     if (currentBuffer.current === null) {
       prepareAudio(trackId.source);
       source.current.start(0);
-      setPlaying(true);
+      setIsPlaying(true);
     } else {
       source.current.buffer = currentBuffer.current;
-      setPlaying(true);
+      setIsPlaying(true);
     }
     audioCtx.resume();
   }, [
     audioCtx,
     prepareAudio,
-    manageQueueOnEnded,
+    manageQueueOnNextTrack,
     trackId,
     nowPlayingInfo,
     radioStationURL,
@@ -231,7 +244,7 @@ const AudioContextProvider = ({ children }: any) => {
       if (radioStationAudio.current) {
         radioStationAudio.current.pause();
       }
-      setPlaying(false);
+      setIsPlaying(false);
     }
   };
 
@@ -245,7 +258,7 @@ const AudioContextProvider = ({ children }: any) => {
         radioStation: false,
       };
     });
-    setResumeQueue(false);
+    setShowResumeQueue(false);
 
     playTrack();
   }, [trackId]);
@@ -255,7 +268,7 @@ const AudioContextProvider = ({ children }: any) => {
       return;
     }
     source.current.disconnect();
-    manageQueueOnEnded();
+    manageQueueOnNextTrack();
   };
 
   const playPreviousTrack = () => {
@@ -263,28 +276,28 @@ const AudioContextProvider = ({ children }: any) => {
       return;
     }
     source.current.disconnect();
-    manageQueueOnPrevious();
+    manageQueueOnPreviousTrack();
   };
 
   useEffect(() => {
     if (!source.current) {
       return;
     }
-    source.current.onended = () => {
-      manageQueueOnEnded();
-    };
-  }, [manageQueueOnEnded, queue]);
+    if (source.current instanceof AudioBufferSourceNode) {
+      source.current.onended = () => {
+        manageQueueOnNextTrack();
+      };
+    }
+  }, [manageQueueOnNextTrack, queue]);
 
   function playRadioStation(name: string, url: string) {
-    // stopTrack();
-    const isRadioStation = true;
     setNowPlayingInfo({
       trackTitle: name,
       trackArtist: "",
-      radioStation: isRadioStation,
+      radioStation: true,
     });
     setRadioStationURL(url);
-    setResumeQueue(true);
+    setShowResumeQueue(true);
   }
 
   useEffect(() => {
@@ -304,16 +317,16 @@ const AudioContextProvider = ({ children }: any) => {
       trackArtist: queue[0]?.artist,
       radioStation: false,
     });
-    setResumeQueue(false);
+    setShowResumeQueue(false);
   }
 
   useEffect(() => {
-    if (resumeQueue === false) {
-      setPlaying(true);
+    if (showResumeQueue === false) {
+      setIsPlaying(true);
 
       playTrack();
     }
-  }, [resumeQueue]);
+  }, [showResumeQueue]);
 
   function addCustomRadioStation(url: string) {
     if (url !== "") {
@@ -321,66 +334,97 @@ const AudioContextProvider = ({ children }: any) => {
     }
   }
 
-  function playBroadcast(title: string, author: string, broadcastURL: string) {
+  function playBroadcast(title: string, author: string) {
     setNowPlayingInfo({
       trackTitle: title,
       trackArtist: author,
       radioStation: false,
     });
     setIsListeningToBroadcast(true);
-    const audio = new Audio(broadcastURL);
-    console.log(audio.src);
-    // radioStationAudio.current = audio;
-    // radioStationAudio.current.play();
   }
 
   function joinBroadcastRoom(broadcastRoomId: string) {
     setIsListeningToBroadcast(true);
-    if (broadcastRoomId !== "") {
-      socket.emit("join-broadcast-room", broadcastRoomId);
+    if (broadcastRoomId !== null && broadcastMediaSource.current !== null) {
+      setBroadcastAudioURL(
+        window.URL.createObjectURL(broadcastMediaSource.current),
+      );
+      const userSocketId = socket.id;
+      socket.emit("join-broadcast-room", broadcastRoomId, userSocketId);
     }
   }
+
+  useEffect(() => {
+    socket.on("listen-to-current-broadcast", (listeningStream: ArrayBuffer) => {
+      console.log("listen 0to current broadcast");
+      const blobik = new Blob([listeningStream], {
+        type: "audio/webm; codecs=opus",
+      });
+      console.log("blobik ", blobik);
+
+      const url = URL.createObjectURL(blobik);
+      const audio = new Audio(url);
+      audio.play();
+    });
+    return () => {
+      socket.off("listen-to-current-broadcast");
+    };
+  }, [broadcastAudioURL, broadcastChunksQueue]);
 
   function startRecording() {
     navigator.mediaDevices
       .getUserMedia({ video: false, audio: true })
-      .then(handleRecording);
-  }
-
-  function handleRecording(stream: any) {
-    console.log("stream", stream);
-    setRecordingStream(new MediaRecorder(stream));
-    console.log("recordingStream", recordingStream);
+      .then((stream) => {
+        mediaStream.current = stream;
+        setRecordingStream(
+          new MediaRecorder(stream, { mimeType: "audio/webm" }),
+        );
+      });
   }
 
   useEffect(() => {
     if (recordingStream) {
-      recordingStream.start();
-      setRecording(true);
-    }
-  }, [recordingStream]);
-
-  function stopRecording() {
-    if (recordingStream) {
-      recordingStream.stop();
       recordingStream.onstop = (e) => {
         console.log("recording stopped", e);
       };
       recordingStream.ondataavailable = (e) => {
         if (e.data.size > 0) {
-          console.log("sdkguhdfg", e.data);
-          chunks.push(e.data);
-          console.log(chunks);
+          recordedChunks.current.push(e.data);
+          const broadcastRoom = broadcastSessionData?.room;
+          console.log("ondataavailable");
+          socket.emit("started-broadcast", e.data, broadcastRoom);
+          recordingStream.start();
+          setTimeout(() => {
+            if (recordingStream.state === "recording") {
+              recordingStream.stop();
+            }
+          }, 1000);
         }
       };
+      recordingStream.start();
+      setTimeout(() => {
+        if (recordingStream.state === "recording") {
+          recordingStream.stop();
+        }
+      }, 1000);
+      setIsRecording(true);
     }
-    const blob = new Blob(chunks, { type: "audio/ogg; codecs=opus" });
-    const audioURL = window.URL.createObjectURL(blob);
-    setTemporaryBroadcastURL(audioURL);
-    console.log("typeof", typeof audioURL);
-    // socket.emit("send-broadcast", audioURL);
-  }
+  }, [recordingStream, broadcastSessionData]);
 
+  function stopRecording() {
+    if (recordingStream) {
+      recordingStream.ondataavailable = null;
+      recordingStream.stop();
+      mediaStream.current?.getTracks().forEach((track) => {
+        track.stop();
+      });
+    }
+    blob.current = new Blob(recordedChunks.current, {
+      type: "audio/webm",
+    });
+
+    setRecordedAudioURL(window.URL.createObjectURL(blob.current));
+  }
   return (
     <AudioPlayerContext.Provider
       value={{
@@ -388,8 +432,8 @@ const AudioContextProvider = ({ children }: any) => {
         stopTrack,
         trackId,
         setTrackId,
-        playing,
-        setPlaying,
+        isPlaying,
+        setIsPlaying,
         volume,
         setVolume,
         queue,
@@ -402,7 +446,7 @@ const AudioContextProvider = ({ children }: any) => {
         playRadioStation,
         customStationURL,
         setCustomStationURL,
-        resumeQueue,
+        showResumeQueue,
         switchFromRadioToQueue,
         isListeningToBroadcast,
         setIsListeningToBroadcast,
@@ -411,14 +455,15 @@ const AudioContextProvider = ({ children }: any) => {
         playBroadcast,
         joinBroadcastRoom,
         addCustomRadioStation,
-        recording,
-        setRecording,
+        isRecording,
+        setIsRecording,
         startRecording,
         stopRecording,
         broadcastSessionData,
         setBroadcastSessionData,
-        temporaryBroadcastURL,
-        setTemporaryBroadcastURL,
+        recordedAudioURL,
+        setRecordedAudioURL,
+        broadcastAudioURL,
       }}
     >
       {children}
