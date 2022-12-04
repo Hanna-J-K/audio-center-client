@@ -180,7 +180,7 @@ export function RadioStationBrowser() {
         }}
         label="Or you can add your own online radio station!"
         placeholder="Paste a link to radio station here"
-        value={customStationURL}
+        value={customStationURL ? customStationURL : ""}
         onChange={(event) => setCustomStationURL(event.currentTarget.value)}
       />
       <Center>

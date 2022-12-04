@@ -8,8 +8,8 @@ import {
   createStyles,
 } from "@mantine/core";
 import React from "react";
-import { useAudio } from "./AudioPlayerContext";
-import { socket } from "./AudioPlayerContext";
+import { useAudio } from "../AudioPlayerContext";
+import { socket } from "../AudioPlayerContext";
 
 const useStyles = createStyles((theme) => ({
   dropdown: {
@@ -81,11 +81,11 @@ interface ItemProps extends SelectItemProps {
   artist: string;
 }
 
-interface SearchBarProps {
-  data: { id: string; title: string; artist: string; album: string }[];
+interface SearchBroadcastBarProp {
+  data: { id: string; title: string; author: string }[];
 }
 
-export function SearchBar({ data }: SearchBarProps) {
+export function SearchBar({ data }: SearchBroadcastBarProp) {
   const { classes } = useStyles();
   const { trackId } = useAudio();
 

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { SearchBar } from "../src/components/SearchBar";
+import { SearchTracksBar } from "../src/components/Tracklist/SearchTracksBar";
 import { PlayerFooter } from "../src/components/Player/PlayerFooter";
 import { socket } from "../src/components/AudioPlayerContext";
 import { useAudio } from "../src/components/AudioPlayerContext";
@@ -53,7 +53,7 @@ export default function IndexPage() {
       <Center>
         <Text className={classes.pageTitle}>Music Queue</Text>
       </Center>
-      <SearchBar data={searchTrackData} />
+      <SearchTracksBar data={searchTrackData} />
       <QueueList queueListData={queue} />
       <PlayerFooter />
     </div>

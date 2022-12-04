@@ -18,6 +18,7 @@ import {
 } from "../AudioPlayerContext";
 import { v4 as uuidv4 } from "uuid";
 import { IconRadio, IconUpload } from "@tabler/icons";
+import type { IBroadcastData } from "../AudioPlayerContext";
 
 const useStyles = createStyles((theme) => ({
   label: {
@@ -160,13 +161,13 @@ export function BroadcastPanel() {
     IBroadcastRecordingData[] | null
   >(null);
   const [shouldShowUpload, setShouldShowUpload] = useState(false);
-  const uploadedBroadcasts = useRef<any>();
+  const uploadedBroadcasts = useRef<any[]>([]);
 
   function prepareBroadcastSession() {
     setIsListeningToBroadcast(false);
     if (broadcastSessionData !== null) {
       const broadcastSessionRoomName =
-        broadcastSessionData.title + "-" + broadcastSessionData.id.slice(0, 8);
+        broadcastSessionData.title + "-" + uuidv4().slice(0, 8);
       setBroadcastSessionData({
         ...broadcastSessionData,
         room: broadcastSessionRoomName,
@@ -199,7 +200,7 @@ export function BroadcastPanel() {
   function uploadBroadcast() {
     if (recordedAudioURL) {
       const data = {
-        id: broadcastSessionData?.id,
+        id: uuidv4(),
         title: broadcastSessionData?.title,
         artist: "Anonymous",
         url: recordedAudioURL,
@@ -245,7 +246,7 @@ export function BroadcastPanel() {
         value={broadcastSessionData?.title}
         onChange={(event) =>
           setBroadcastSessionData({
-            id: uuidv4(),
+            id: "",
             title: event.currentTarget.value,
             author: "Anonymous",
             room: null,
