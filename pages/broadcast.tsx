@@ -1,5 +1,4 @@
 import React from "react";
-import { BroadcastTiles } from "../src/components/Broadcast/BroadcastTiles";
 import { BroadcastPanel } from "../src/components/Broadcast/BroadcastPanel";
 import { BroadcastFooter } from "../src/components/Player/BroadcastFooter";
 import { useAudio } from "../src/components/AudioPlayerContext";
@@ -22,9 +21,8 @@ export default function BroadcastPage() {
   return (
     <>
       <Center>
-        <Text className={classes.pageTitle}>Your Broadcasts</Text>
+        <Text className={classes.pageTitle}>Your Live Broadcast</Text>
       </Center>
-      <BroadcastTiles />
       <BroadcastPanel />
       {isListeningToBroadcast ? <PlayerFooter /> : <BroadcastFooter />}
     </>

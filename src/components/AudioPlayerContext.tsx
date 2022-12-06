@@ -7,6 +7,11 @@ import React, {
   useRef,
 } from "react";
 import { io } from "socket.io-client";
+import axios from "axios";
+
+export const axiosApi = axios.create({
+  baseURL: "http://localhost:3000/",
+});
 
 export const socket = io("http://localhost:3000");
 

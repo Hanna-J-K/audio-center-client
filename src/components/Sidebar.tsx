@@ -13,6 +13,7 @@ import {
   IconBroadcast,
   IconPlaylist,
   IconHeadphones,
+  IconLogin,
 } from "@tabler/icons";
 
 import React from "react";
@@ -76,7 +77,19 @@ export default function MenuBar() {
       {/* <SegmentedToggle /> */}
       <Stack>
         <Navbar.Section my="xl">
-          <Link href="/" passHref>
+          <Link href="/login" passHref>
+            <Anchor component="a" className={classes.links}>
+              <Group className={classes.links} position="left">
+                <ActionIcon className={classes.icon} size={36}>
+                  <IconLogin size={48} />
+                </ActionIcon>
+                <Title>Login</Title>
+              </Group>
+            </Anchor>
+          </Link>
+        </Navbar.Section>
+        <Navbar.Section my="xl">
+          <Link href="/queue" passHref>
             <Anchor component="a" className={classes.links}>
               <Group className={classes.links} position="left">
                 <ActionIcon className={classes.icon} size={36}>

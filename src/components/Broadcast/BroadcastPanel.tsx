@@ -192,24 +192,6 @@ export function BroadcastPanel() {
     };
   });
 
-  function handleFinishedBroadcast() {
-    setShouldShowUpload(false);
-    setRecordedAudioURL(null);
-  }
-
-  function uploadBroadcast() {
-    if (recordedAudioURL) {
-      const data = {
-        id: uuidv4(),
-        title: broadcastSessionData?.title,
-        artist: "Anonymous",
-        url: recordedAudioURL,
-      };
-      socket.emit("upload-custom-broadcast", data);
-      setRecordedAudioURL(null);
-    }
-  }
-
   return (
     <>
       <TextInput
@@ -286,39 +268,6 @@ export function BroadcastPanel() {
                     </Text>
                     <audio controls={true} src={recordedAudioURL} />
                   </UnstyledButton>
-                  <Center>
-                    <Text className={classes.label}>
-                      Do you want to upload this recording and make it public?
-                    </Text>
-                  </Center>
-                  <Center>
-                    <Button
-                      type="button"
-                      className={classes.button}
-                      size="md"
-                      onClick={() => setShouldShowUpload(true)}
-                    >
-                      Yes
-                    </Button>
-                    <Button
-                      type="button"
-                      className={classes.button}
-                      size="md"
-                      onClick={handleFinishedBroadcast}
-                    >
-                      No
-                    </Button>
-                  </Center>
-                  {shouldShowUpload ? (
-                    <Center className={classes.tile}>
-                      <ActionIcon
-                        className={classes.item}
-                        onClick={uploadBroadcast}
-                      >
-                        <IconUpload size={36} />
-                      </ActionIcon>
-                    </Center>
-                  ) : null}
                 </Group>
               </Card>
             </SimpleGrid>
@@ -327,23 +276,13 @@ export function BroadcastPanel() {
               <Text className={classes.label}>
                 {" "}
                 {`
-              No recorder sessions yet. Record your first session by entering a session name and generating a room name!
+              No recorder sessions yet. Record your session by entering a session name and generating a room name!
               `}
               </Text>
             </Center>
           )}
         </Card>
       </Center>
-      <Card withBorder radius="md" className={classes.tile}>
-        <Group position="apart">
-          <Text className={classes.title}>Your Uploaded Sessions</Text>
-        </Group>
-      </Card>
-      {uploadedBroadcasts !== null ? (
-        <SimpleGrid>{uploadedBroadcasts.current}</SimpleGrid>
-      ) : (
-        <Text>You did not upload any recorded broadcasts yet.</Text>
-      )}
     </>
   );
 }
