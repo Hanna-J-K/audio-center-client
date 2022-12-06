@@ -11,6 +11,7 @@ import React from "react";
 import { IRadioStationData, useAudio } from "../AudioPlayerContext";
 import useSWR from "swr";
 import { IconRadio } from "@tabler/icons";
+import { API_URL } from "../AudioPlayerContext";
 
 const useStyles = createStyles((theme) => ({
   tile: {
@@ -79,7 +80,7 @@ const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 export function useRadioStation() {
   const { data, mutate } = useSWR<Array<IRadioStationData>>(
-    "http://localhost:3000/radio",
+    API_URL + "/radio",
     fetcher,
   );
   return {

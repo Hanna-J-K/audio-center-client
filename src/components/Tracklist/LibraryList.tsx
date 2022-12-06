@@ -10,6 +10,7 @@ import React from "react";
 import { IconDeviceFloppy } from "@tabler/icons";
 import { ITrackPlaylistData, socket } from "../AudioPlayerContext";
 import useSWR from "swr";
+import { API_URL } from "../AudioPlayerContext";
 
 const useStyles = createStyles((theme) => ({
   header: {
@@ -122,7 +123,7 @@ const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 export function useLibrary() {
   const { data, mutate } = useSWR<Array<ITrackPlaylistData>>(
-    "http://localhost:3000/library",
+    API_URL + "/library",
     fetcher,
   );
   return {
