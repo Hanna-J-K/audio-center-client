@@ -23,7 +23,7 @@ export default function Account({ session }: { session: Session }) {
         <label htmlFor="website">Website</label>
       </div>
 
-      <div>{user.user_metadata.username}</div>
+      <div>{user?.user_metadata.username}</div>
 
       <div>
         <button

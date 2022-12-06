@@ -1,6 +1,6 @@
 import { AppShell } from "@mantine/core";
 import React from "react";
-import MenuBar from "./SideBar";
+import MenuBar from "./Sidebar";
 
 interface LayoutProps {
   children: React.ReactNode;

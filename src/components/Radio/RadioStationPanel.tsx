@@ -188,7 +188,11 @@ export function RadioStationBrowser() {
           type="button"
           className={classes.button}
           size="md"
-          onClick={() => addCustomRadioStation(customStationURL)}
+          onClick={() => {
+            if (customStationURL !== null) {
+              addCustomRadioStation(customStationURL);
+            }
+          }}
         >
           Add station
         </Button>
