@@ -9,11 +9,16 @@ import React, {
 import { io } from "socket.io-client";
 import axios from "axios";
 
+export const API_URL =
+  process.env.NODE_ENV === "production"
+    ? "https://audio-centrum.azurewebsites.net/"
+    : "http://localhost:8080";
+
 export const axiosApi = axios.create({
-  baseURL: "http://localhost:3000/",
+  baseURL: API_URL,
 });
 
-export const socket = io("http://localhost:3000");
+export const socket = io(API_URL);
 
 export interface ITrackPlaylistData {
   id: string;
@@ -135,6 +140,7 @@ const AudioContextProvider = ({ children }: any) => {
     if (!window) {
       return;
     }
+    console.log(API_URL);
     broadcastMediaSource.current = new MediaSource();
     const newAudioCtx = new AudioContext();
     setAudioCtx(newAudioCtx);
