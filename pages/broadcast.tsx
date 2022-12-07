@@ -1,7 +1,7 @@
 import React from "react";
 import { BroadcastPanel } from "../src/components/Broadcast/BroadcastPanel";
 import { BroadcastFooter } from "../src/components/Player/BroadcastFooter";
-import { useAudio } from "../src/components/AudioPlayerContext";
+import { useAudio } from "../src/components/Context/AudioPlayerContext";
 import { PlayerFooter } from "../src/components/Player/PlayerFooter";
 import { Center, Text, createStyles } from "@mantine/core";
 
