@@ -11,7 +11,11 @@ import {
   Group,
   SimpleGrid,
 } from "@mantine/core";
-import { IRadioStationData, socket, useAudio } from "../AudioPlayerContext";
+import {
+  IRadioStationData,
+  socket,
+  useAudio,
+} from "../Context/AudioPlayerContext";
 import { IconRadio } from "@tabler/icons";
 
 const useStyles = createStyles((theme) => ({

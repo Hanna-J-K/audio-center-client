@@ -8,8 +8,8 @@ import {
   createStyles,
 } from "@mantine/core";
 import React from "react";
-import { useAudio } from "../AudioPlayerContext";
-import { socket } from "../AudioPlayerContext";
+import { useAudio } from "../Context/AudioPlayerContext";
+import { socket } from "../Context/AudioPlayerContext";
 
 const useStyles = createStyles((theme) => ({
   dropdown: {

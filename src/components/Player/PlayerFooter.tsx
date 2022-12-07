@@ -18,8 +18,8 @@ import {
   IconMusic,
 } from "@tabler/icons";
 import React, { useEffect, useState } from "react";
-import { useAudio } from "../AudioPlayerContext";
-import { socket } from "../AudioPlayerContext";
+import { useAudio } from "../Context/AudioPlayerContext";
+import { socket } from "../Context/AudioPlayerContext";
 
 const useStyles = createStyles((theme) => ({
   footer: {

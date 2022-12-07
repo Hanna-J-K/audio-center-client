@@ -8,7 +8,7 @@ import {
 } from "@mantine/core";
 import React from "react";
 import { IconDeviceFloppy } from "@tabler/icons";
-import { socket } from "../AudioPlayerContext";
+import { socket } from "../Context/AudioPlayerContext";
 import { useLibrary } from "./LibraryList";
 
 const useStyles = createStyles((theme) => ({

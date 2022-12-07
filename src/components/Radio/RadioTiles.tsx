@@ -8,10 +8,10 @@ import {
   Center,
 } from "@mantine/core";
 import React from "react";
-import { IRadioStationData, useAudio } from "../AudioPlayerContext";
+import { IRadioStationData, useAudio } from "../Context/AudioPlayerContext";
 import useSWR from "swr";
 import { IconRadio } from "@tabler/icons";
-import { API_URL } from "../AudioPlayerContext";
+import { API_URL } from "../Context/AudioPlayerContext";
 
 const useStyles = createStyles((theme) => ({
   tile: {

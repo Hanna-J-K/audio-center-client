@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { SearchTracksBar } from "../src/components/Tracklist/SearchTracksBar";
 import { PlayerFooter } from "../src/components/Player/PlayerFooter";
-import { socket } from "../src/components/AudioPlayerContext";
-import { useAudio } from "../src/components/AudioPlayerContext";
-import type { ITrack } from "../src/components/AudioPlayerContext";
+import { socket } from "../src/components/Context/AudioPlayerContext";
+import { useAudio } from "../src/components/Context/AudioPlayerContext";
+import type { ITrack } from "../src/components/Context/AudioPlayerContext";
 import { QueueList } from "../src/components/Tracklist/QueueList";
-import type { ITrackPlaylistData } from "../src/components/AudioPlayerContext";
+import type { ITrackPlaylistData } from "../src/components/Context/AudioPlayerContext";
 import { Center, Text, createStyles } from "@mantine/core";
 
 const useStyles = createStyles(() => ({
