@@ -11,6 +11,7 @@ import { IconDeviceFloppy } from "@tabler/icons";
 import { ITrackPlaylistData, socket } from "../Context/AudioPlayerContext";
 import useSWR from "swr";
 import { API_URL } from "../Context/AudioPlayerContext";
+import { Session, useSession } from "@supabase/auth-helpers-react";
 
 const useStyles = createStyles((theme) => ({
   header: {
@@ -115,15 +116,18 @@ const useStyles = createStyles((theme) => ({
   },
 }));
 
-const savedToLibrary = (id: string) => {
-  socket.emit("save-to-library", id);
+const savedToLibrary = (id: string, accessToken: string) => {
+  socket.emit("save-to-library", id, accessToken);
 };
 
-const fetcher = (url: string) => fetch(url).then((res) => res.json());
+const fetcher = (url: string, accessToken: string) =>
+  fetch(url, { headers: { Authorization: "Bearer " + accessToken } }).then(
+    (res) => res.json(),
+  );
 
-export function useLibrary() {
+export function useLibrary(session: Session | null) {
   const { data, mutate } = useSWR<Array<ITrackPlaylistData>>(
-    API_URL + "/library",
+    [API_URL + "/library", session?.access_token],
     fetcher,
   );
   return {
@@ -134,8 +138,9 @@ export function useLibrary() {
 
 export function LibraryList() {
   const { classes, cx } = useStyles();
+  const session = useSession();
   const [scrolled, setScrolled] = useState(false);
-  const { library, mutate } = useLibrary();
+  const { library, mutate } = useLibrary(session);
 
   const rows = library?.map((row) => (
     <tr key={row.title} className={classes.tableRow}>
@@ -144,7 +149,7 @@ export function LibraryList() {
       <td style={{ borderBottom: "1px solid #2a9d8f" }}>{row.album}</td>
       <td style={{ borderBottom: "1px solid #2a9d8f" }}>
         <ActionIcon
-          onClick={() => savedToLibrary(row.id)}
+          onClick={() => savedToLibrary(row.id, session?.access_token || "")}
           className={classes.iconSaved}
         >
           <IconDeviceFloppy />

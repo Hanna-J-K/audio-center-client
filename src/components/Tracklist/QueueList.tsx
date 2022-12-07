@@ -10,6 +10,7 @@ import React from "react";
 import { IconDeviceFloppy } from "@tabler/icons";
 import { socket } from "../Context/AudioPlayerContext";
 import { useLibrary } from "./LibraryList";
+import { useSession } from "@supabase/auth-helpers-react";
 
 const useStyles = createStyles((theme) => ({
   header: {
@@ -117,15 +118,15 @@ interface TableScrollAreaProps {
   queueListData: { id: string; title: string; artist: string; album: string }[];
 }
 
-const savedToLibrary = (id: string) => {
-  socket.emit("save-to-library", id);
+const savedToLibrary = (id: string, accessToken: string) => {
+  socket.emit("save-to-library", id, accessToken);
 };
 
 export function QueueList({ queueListData }: TableScrollAreaProps) {
   const { classes, cx } = useStyles();
   const [scrolled, setScrolled] = useState(false);
-  const { library, mutate } = useLibrary();
-
+  const session = useSession();
+  const { library, mutate } = useLibrary(session);
   const checkIfSaved = useCallback(
     (id: string) => {
       if (
@@ -151,7 +152,7 @@ export function QueueList({ queueListData }: TableScrollAreaProps) {
       <td style={{ borderBottom: "1px solid #2a9d8f" }}>{row.album}</td>
       <td style={{ borderBottom: "1px solid #2a9d8f" }}>
         <ActionIcon
-          onClick={() => savedToLibrary(row.id)}
+          onClick={() => savedToLibrary(row.id, session?.access_token || "")}
           className={
             checkIfSaved(row.id) ? classes.iconSaved : classes.iconUnsaved
           }
