@@ -13,7 +13,7 @@ import {
 import { IconEyeOff, IconEyeCheck } from "@tabler/icons";
 import Link from "next/link";
 import { useState } from "react";
-import { axiosApi } from "../AudioPlayerContext";
+import { axiosApi } from "../Context/AudioPlayerContext";
 import { Auth, ThemeSupa } from "@supabase/auth-ui-react";
 import { useSession, useSupabaseClient } from "@supabase/auth-helpers-react";
 

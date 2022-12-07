@@ -8,6 +8,7 @@ import React, {
 } from "react";
 import { io } from "socket.io-client";
 import axios from "axios";
+import { v4 as uuidv4 } from "uuid";
 
 export const API_URL =
   process.env.NODE_ENV === "production"
@@ -140,7 +141,6 @@ const AudioContextProvider = ({ children }: any) => {
     if (!window) {
       return;
     }
-    console.log(API_URL);
     broadcastMediaSource.current = new MediaSource();
     const newAudioCtx = new AudioContext();
     setAudioCtx(newAudioCtx);

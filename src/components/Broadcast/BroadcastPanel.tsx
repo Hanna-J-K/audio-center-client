@@ -15,10 +15,10 @@ import {
   socket,
   useAudio,
   IBroadcastRecordingData,
-} from "../AudioPlayerContext";
+} from "../Context/AudioPlayerContext";
 import { v4 as uuidv4 } from "uuid";
 import { IconRadio, IconUpload } from "@tabler/icons";
-import type { IBroadcastData } from "../AudioPlayerContext";
+import type { IBroadcastData } from "../Context/AudioPlayerContext";
 
 const useStyles = createStyles((theme) => ({
   label: {

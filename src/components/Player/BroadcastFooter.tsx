@@ -17,7 +17,7 @@ import {
   IconBroadcastOff,
 } from "@tabler/icons";
 import React, { useState } from "react";
-import { useAudio } from "../AudioPlayerContext";
+import { useAudio } from "../Context/AudioPlayerContext";
 
 const useStyles = createStyles((theme) => ({
   footer: {

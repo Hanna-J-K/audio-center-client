@@ -9,8 +9,8 @@ import {
 } from "@mantine/core";
 import { theme } from "../styles/theme";
 import { AppProps } from "next/app";
-import Layout from "../src/components/Layout";
-import { AudioContextProvider } from "../src/components/AudioPlayerContext";
+import Layout from "../src/components/Layout/Layout";
+import { AudioContextProvider } from "../src/components/Context/AudioPlayerContext";
 import { createBrowserSupabaseClient } from "@supabase/auth-helpers-nextjs";
 import { SessionContextProvider, Session } from "@supabase/auth-helpers-react";
 

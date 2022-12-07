@@ -8,9 +8,9 @@ import {
 } from "@mantine/core";
 import React from "react";
 import { IconDeviceFloppy } from "@tabler/icons";
-import { ITrackPlaylistData, socket } from "../AudioPlayerContext";
+import { ITrackPlaylistData, socket } from "../Context/AudioPlayerContext";
 import useSWR from "swr";
-import { API_URL } from "../AudioPlayerContext";
+import { API_URL } from "../Context/AudioPlayerContext";
 
 const useStyles = createStyles((theme) => ({
   header: {
