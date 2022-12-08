@@ -35,7 +35,7 @@ interface INowPlayingInfo {
 }
 export interface IRadioStationData {
   id: string;
-  name: string;
+  title: string;
   url: string;
 }
 
@@ -85,7 +85,6 @@ interface IAudioPlayerContext {
   setBroadcastRoomId: (broadcastRoomId: string) => void;
   playBroadcast: (title: string, author: string, broadcastURL: string) => void;
   joinBroadcastRoom: (broadcastRoomId: string) => void;
-  addCustomRadioStation: (url: string) => void;
   isRecording: boolean;
   setIsRecording: (isRecording: boolean) => void;
   startRecording: () => void;
@@ -145,6 +144,7 @@ const AudioContextProvider = ({ children }: any) => {
     const newAudioCtx = new AudioContext();
     setAudioCtx(newAudioCtx);
     source.current = new AudioBufferSourceNode(newAudioCtx);
+    console.log(uuidv4());
   }, []);
 
   const prepareAudio = useCallback(
@@ -339,12 +339,6 @@ const AudioContextProvider = ({ children }: any) => {
     }
   }, [showResumeQueue]);
 
-  function addCustomRadioStation(url: string) {
-    if (url !== "") {
-      socket.emit("add-custom-radio-station", url);
-    }
-  }
-
   function playBroadcast(title: string, author: string) {
     setNowPlayingInfo({
       trackTitle: title,
@@ -465,7 +459,6 @@ const AudioContextProvider = ({ children }: any) => {
         setBroadcastRoomId,
         playBroadcast,
         joinBroadcastRoom,
-        addCustomRadioStation,
         isRecording,
         setIsRecording,
         startRecording,

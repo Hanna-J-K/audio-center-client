@@ -1,4 +1,3 @@
-import { useState, useEffect } from "react";
 import {
   useUser,
   useSupabaseClient,
@@ -8,7 +7,6 @@ import {
 export default function Account({ session }: { session: Session }) {
   const supabase = useSupabaseClient();
   const user = useUser();
-  const [loading, setLoading] = useState(true);
 
   return (
     <div className="form-widget">

@@ -12,14 +12,18 @@ export default function IndexPage() {
   return (
     <Center>
       <Stack>
-        <WelcomeBanner />
         <div className="container" style={{ padding: "50px 0 100px 0" }}>
           {!session ? (
-            <Auth
-              supabaseClient={supabase}
-              appearance={{ theme: ThemeSupa }}
-              theme="dark"
-            />
+            <>
+              <WelcomeBanner />
+              <Auth
+                supabaseClient={supabase}
+                theme="dark"
+                appearance={{
+                  theme: ThemeSupa,
+                }}
+              />
+            </>
           ) : (
             <Account session={session} />
           )}
