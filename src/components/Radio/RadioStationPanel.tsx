@@ -17,6 +17,7 @@ import {
   useAudio,
 } from "../Context/AudioPlayerContext";
 import { IconRadio } from "@tabler/icons";
+import { useSession } from "@supabase/auth-helpers-react";
 
 const useStyles = createStyles((theme) => ({
   label: {
@@ -141,27 +142,28 @@ const useStyles = createStyles((theme) => ({
   },
 }));
 
+const addCustomRadioStation = (url: string, accessToken: string) => {
+  socket.emit("add-custom-radio-station", { url, accessToken });
+};
+
 export function RadioStationBrowser() {
   const { classes } = useStyles();
-  const {
-    customStationURL,
-    setCustomStationURL,
-    playRadioStation,
-    addCustomRadioStation,
-  } = useAudio();
+  const { customStationURL, setCustomStationURL, playRadioStation } =
+    useAudio();
   const [customRadioStations, setCustomRadioStations] = useState<
     IRadioStationData[] | null
   >(null);
+  const session = useSession();
 
   const customStations = customRadioStations?.map((station) => (
     <UnstyledButton
       key={station.id}
       className={classes.item}
-      onClick={() => playRadioStation(station.name, station.url)}
+      onClick={() => playRadioStation(station.title, station.url)}
     >
       <IconRadio size={36} />
       <Text size="md" mt={7}>
-        {station.name}
+        {station.title}
       </Text>
     </UnstyledButton>
   ));
@@ -194,7 +196,10 @@ export function RadioStationBrowser() {
           size="md"
           onClick={() => {
             if (customStationURL !== null) {
-              addCustomRadioStation(customStationURL);
+              addCustomRadioStation(
+                customStationURL,
+                session?.access_token || "",
+              );
             }
           }}
         >

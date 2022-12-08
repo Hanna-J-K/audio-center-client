@@ -12,6 +12,7 @@ import { IRadioStationData, useAudio } from "../Context/AudioPlayerContext";
 import useSWR from "swr";
 import { IconRadio } from "@tabler/icons";
 import { API_URL } from "../Context/AudioPlayerContext";
+import { Session, useSession } from "@supabase/auth-helpers-react";
 
 const useStyles = createStyles((theme) => ({
   tile: {
@@ -76,11 +77,14 @@ const useStyles = createStyles((theme) => ({
   },
 }));
 
-const fetcher = (url: string) => fetch(url).then((res) => res.json());
+const fetcher = (url: string, accessToken: string) =>
+  fetch(url, { headers: { Authorization: "Bearer " + accessToken } }).then(
+    (res) => res.json(),
+  );
 
-export function useRadioStation() {
+export function useRadioStation(session: Session | null) {
   const { data, mutate } = useSWR<Array<IRadioStationData>>(
-    API_URL + "/radio",
+    [API_URL + "/radio", session?.access_token],
     fetcher,
   );
   return {
@@ -91,19 +95,19 @@ export function useRadioStation() {
 
 export function RadioTiles() {
   const { classes } = useStyles();
-
-  const { stations, mutate } = useRadioStation();
+  const session = useSession();
+  const { stations, mutate } = useRadioStation(session);
   const { playRadioStation } = useAudio();
 
   const recommendedStations = stations?.map((station) => (
     <UnstyledButton
       key={station.id}
       className={classes.item}
-      onClick={() => playRadioStation(station.name, station.url)}
+      onClick={() => playRadioStation(station.title, station.url)}
     >
       <IconRadio size={36} />
       <Text size="md" mt={7}>
-        {station.name}
+        {station.title}
       </Text>
     </UnstyledButton>
   ));

@@ -93,13 +93,13 @@ const useStyles = createStyles((theme) => ({
   },
 }));
 
-export function WelcomeBanner() {
+export function LoginBanner() {
   const { classes } = useStyles();
 
   return (
     <Container className={classes.wrapper} size={1400}>
       <div className={classes.inner}>
-        <Title className={classes.title}>Welcome to Audio Center</Title>
+        <Title className={classes.title}>Sorry! You have to sign in </Title>
 
         <Container p={0} size={600}>
           <Text size="lg" className={classes.description}>

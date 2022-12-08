@@ -14,9 +14,11 @@ import {
   IconPlaylist,
   IconHeadphones,
   IconLogin,
+  IconHome,
 } from "@tabler/icons";
 
 import React from "react";
+import { useSession } from "@supabase/auth-helpers-react";
 
 const useStyles = createStyles((theme) => ({
   navbar: {
@@ -67,6 +69,7 @@ const useStyles = createStyles((theme) => ({
 
 export default function MenuBar() {
   const { classes } = useStyles();
+  const session = useSession();
   return (
     <Navbar
       className={classes.navbar}
@@ -76,66 +79,83 @@ export default function MenuBar() {
     >
       {/* <SegmentedToggle /> */}
       <Stack>
-        <Navbar.Section my="xl">
-          <Link href="/login" passHref>
-            <Anchor component="a" className={classes.links}>
-              <Group className={classes.links} position="left">
-                <ActionIcon className={classes.icon} size={36}>
-                  <IconLogin size={48} />
-                </ActionIcon>
-                <Title>Login</Title>
-              </Group>
-            </Anchor>
-          </Link>
-        </Navbar.Section>
-        <Navbar.Section my="xl">
-          <Link href="/queue" passHref>
-            <Anchor component="a" className={classes.links}>
-              <Group className={classes.links} position="left">
-                <ActionIcon className={classes.icon} size={36}>
-                  <IconPlaylist size={48} />
-                </ActionIcon>
-                <Title>Queue</Title>
-              </Group>
-            </Anchor>
-          </Link>
-        </Navbar.Section>
-        <Navbar.Section my="xl">
-          <Link href="/library" passHref>
-            <Anchor component="a" className={classes.links}>
-              <Group className={classes.links} position="left">
-                <ActionIcon className={classes.icon} size={36}>
-                  <IconHeadphones size={48} />
-                </ActionIcon>
-                <Title>Library</Title>
-              </Group>
-            </Anchor>
-          </Link>
-        </Navbar.Section>
-        <Navbar.Section my="xl">
-          <Link href="/radio" passHref>
-            <Anchor component="a" className={classes.links}>
-              <Group className={classes.links} position="left">
-                <ActionIcon className={classes.icon} size={36}>
-                  <IconRadio size={48} />
-                </ActionIcon>
-                <Title>Radio</Title>
-              </Group>
-            </Anchor>
-          </Link>
-        </Navbar.Section>
-        <Navbar.Section my="xl">
-          <Link href="/broadcast" passHref>
-            <Anchor component="a" className={classes.links}>
-              <Group className={classes.links} position="left">
-                <ActionIcon className={classes.icon} size={36}>
-                  <IconBroadcast size={48} />
-                </ActionIcon>
-                <Title>Broadcast</Title>
-              </Group>
-            </Anchor>
-          </Link>
-        </Navbar.Section>
+        {session ? (
+          <>
+            <Navbar.Section my="sm">
+              <Link href="/" passHref>
+                <Anchor component="a" className={classes.links}>
+                  <Group className={classes.links} position="left">
+                    <ActionIcon className={classes.icon} size={36}>
+                      <IconHome size={48} />
+                    </ActionIcon>
+                    <Title>Home</Title>
+                  </Group>
+                </Anchor>
+              </Link>
+            </Navbar.Section>
+            <Navbar.Section my="sm">
+              <Link href="/queue" passHref>
+                <Anchor component="a" className={classes.links}>
+                  <Group className={classes.links} position="left">
+                    <ActionIcon className={classes.icon} size={36}>
+                      <IconPlaylist size={48} />
+                    </ActionIcon>
+                    <Title>Queue</Title>
+                  </Group>
+                </Anchor>
+              </Link>
+            </Navbar.Section>
+            <Navbar.Section my="sm">
+              <Link href="/library" passHref>
+                <Anchor component="a" className={classes.links}>
+                  <Group className={classes.links} position="left">
+                    <ActionIcon className={classes.icon} size={36}>
+                      <IconHeadphones size={48} />
+                    </ActionIcon>
+                    <Title>Library</Title>
+                  </Group>
+                </Anchor>
+              </Link>
+            </Navbar.Section>
+            <Navbar.Section my="sm">
+              <Link href="/radio" passHref>
+                <Anchor component="a" className={classes.links}>
+                  <Group className={classes.links} position="left">
+                    <ActionIcon className={classes.icon} size={36}>
+                      <IconRadio size={48} />
+                    </ActionIcon>
+                    <Title>Radio</Title>
+                  </Group>
+                </Anchor>
+              </Link>
+            </Navbar.Section>
+            <Navbar.Section my="sm">
+              <Link href="/broadcast" passHref>
+                <Anchor component="a" className={classes.links}>
+                  <Group className={classes.links} position="left">
+                    <ActionIcon className={classes.icon} size={36}>
+                      <IconBroadcast size={48} />
+                    </ActionIcon>
+                    <Title>Broadcast</Title>
+                  </Group>
+                </Anchor>
+              </Link>
+            </Navbar.Section>{" "}
+          </>
+        ) : (
+          <Navbar.Section my="sm">
+            <Link href="/" passHref>
+              <Anchor component="a" className={classes.links}>
+                <Group className={classes.links} position="left">
+                  <ActionIcon className={classes.icon} size={36}>
+                    <IconLogin size={48} />
+                  </ActionIcon>
+                  <Title>Login</Title>
+                </Group>
+              </Anchor>
+            </Link>
+          </Navbar.Section>
+        )}
       </Stack>
     </Navbar>
   );
