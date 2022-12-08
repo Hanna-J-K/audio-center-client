@@ -8,7 +8,6 @@ import React, {
 } from "react";
 import { io } from "socket.io-client";
 import axios from "axios";
-import { v4 as uuidv4 } from "uuid";
 
 export const API_URL =
   process.env.NODE_ENV === "production"
@@ -144,7 +143,7 @@ const AudioContextProvider = ({ children }: any) => {
     const newAudioCtx = new AudioContext();
     setAudioCtx(newAudioCtx);
     source.current = new AudioBufferSourceNode(newAudioCtx);
-    console.log(uuidv4());
+    setIsPlaying(false);
   }, []);
 
   const prepareAudio = useCallback(
@@ -377,6 +376,7 @@ const AudioContextProvider = ({ children }: any) => {
   }, [broadcastAudioURL, broadcastChunksQueue]);
 
   function startRecording() {
+    socket.emit("publish-broadcast-session-room", broadcastSessionData?.room);
     navigator.mediaDevices
       .getUserMedia({ video: false, audio: true })
       .then((stream) => {

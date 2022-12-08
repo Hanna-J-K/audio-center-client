@@ -19,6 +19,7 @@ import {
 import { v4 as uuidv4 } from "uuid";
 import { IconRadio, IconUpload } from "@tabler/icons";
 import type { IBroadcastData } from "../Context/AudioPlayerContext";
+import LiveBroadcastingSessions from "./LiveBroadcastingSessions";
 
 const useStyles = createStyles((theme) => ({
   label: {
@@ -155,12 +156,10 @@ export function BroadcastPanel() {
     isListeningToBroadcast,
     setIsListeningToBroadcast,
     recordedAudioURL,
-    setRecordedAudioURL,
   } = useAudio();
   const [customBroadcasts, setCustomBroadcasts] = useState<
     IBroadcastRecordingData[] | null
   >(null);
-  const [shouldShowUpload, setShouldShowUpload] = useState(false);
   const uploadedBroadcasts = useRef<any[]>([]);
 
   function prepareBroadcastSession() {
@@ -194,13 +193,14 @@ export function BroadcastPanel() {
 
   return (
     <>
+      <LiveBroadcastingSessions />
       <TextInput
         classNames={{
           input: classes.input,
           label: classes.label,
           root: classes.root,
         }}
-        label="Or you can join an active room!"
+        label="Join a live broadcast by entering room ID!"
         placeholder="Paste broadcast room ID here"
         value={broadcastRoomId !== null ? broadcastRoomId : ""}
         onChange={(event) => setBroadcastRoomId(event.currentTarget.value)}

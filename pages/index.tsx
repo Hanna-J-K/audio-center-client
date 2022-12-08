@@ -2,8 +2,9 @@ import React from "react";
 import { Auth, ThemeSupa } from "@supabase/auth-ui-react";
 import { useSession, useSupabaseClient } from "@supabase/auth-helpers-react";
 import Account from "../src/components/Authentication/Account";
-import { Center, Stack } from "@mantine/core";
+import { Center, Group, Stack } from "@mantine/core";
 import { WelcomeBanner } from "../src/components/Layout/WelcomeBanner";
+import { QuickStartFeatures } from "../src/components/Layout/QuickStartFeatures";
 
 export default function IndexPage() {
   const session = useSession();
