@@ -16,6 +16,7 @@ import {
   IconVolume,
   IconVolumeOff,
   IconMusic,
+  IconBroadcast,
 } from "@tabler/icons";
 import React, { useEffect, useState } from "react";
 import { useAudio } from "../Context/AudioPlayerContext";
@@ -123,6 +124,9 @@ export function PlayerFooter() {
     setNowPlayingInfo,
     showResumeQueue,
     switchFromRadioToQueue,
+    hasJoinedBroadcastRoom,
+    setHasJoinedBroadcastRoom,
+    liveSessionData,
   } = useAudio();
 
   useEffect(() => {
@@ -138,6 +142,41 @@ export function PlayerFooter() {
     };
   }, [playTrack, setNowPlayingInfo]);
 
+  const leaveBroadcastRoom = () => {
+    setHasJoinedBroadcastRoom(false);
+    socket.emit("leave-broadcast-room", liveSessionData?.room, socket.id);
+    switchFromRadioToQueue();
+  };
+
+  const trackInfo = (
+    <>
+      <Title className={classes.track} order={2}>
+        Track: {nowPlayingInfo?.trackTitle}
+      </Title>
+      <Title className={classes.track} order={2}>
+        Artist: {nowPlayingInfo?.trackArtist}
+      </Title>
+    </>
+  );
+  const radioStationInfo = (
+    <>
+      <Title className={classes.track} order={2}>
+        Track: {nowPlayingInfo?.trackTitle}
+      </Title>
+    </>
+  );
+
+  const liveSessionInfo = (
+    <>
+      <Title className={classes.track} order={2}>
+        Broadcast: {liveSessionData?.title}
+      </Title>
+      <Title className={classes.track} order={2}>
+        Artist: {liveSessionData?.author}
+      </Title>
+    </>
+  );
+
   return (
     <Footer className={classes.footer} height={125}>
       <Grid align="center">
@@ -146,20 +185,23 @@ export function PlayerFooter() {
             <Grid align="center">
               <Grid.Col span="auto">
                 <ActionIcon className={classes.icon} size={36}>
-                  <IconMusic size={48} />
+                  {hasJoinedBroadcastRoom ? (
+                    <IconBroadcast size={48} />
+                  ) : (
+                    <IconMusic size={48} />
+                  )}
                 </ActionIcon>
               </Grid.Col>
               <Grid.Col span="content">
-                <Title className={classes.track} order={2}>
-                  Track: {nowPlayingInfo?.trackTitle}
-                </Title>
-                {nowPlayingInfo?.radioStation ? null : (
-                  <Title className={classes.track} order={2}>
-                    Artist: {nowPlayingInfo?.trackArtist}
-                  </Title>
-                )}
+                {nowPlayingInfo?.radioStation && !hasJoinedBroadcastRoom
+                  ? radioStationInfo
+                  : null}
+                {hasJoinedBroadcastRoom ? liveSessionInfo : null}
+                {!nowPlayingInfo?.radioStation && !hasJoinedBroadcastRoom
+                  ? trackInfo
+                  : null}
               </Grid.Col>
-              {showResumeQueue ? (
+              {showResumeQueue && !hasJoinedBroadcastRoom ? (
                 <Grid.Col span="content">
                   <Button
                     type="button"
@@ -167,6 +209,17 @@ export function PlayerFooter() {
                     onClick={switchFromRadioToQueue}
                   >
                     Resume Queue
+                  </Button>
+                </Grid.Col>
+              ) : null}
+              {hasJoinedBroadcastRoom ? (
+                <Grid.Col span="content">
+                  <Button
+                    type="button"
+                    className={classes.controls}
+                    onClick={leaveBroadcastRoom}
+                  >
+                    Leave session
                   </Button>
                 </Grid.Col>
               ) : null}
@@ -186,6 +239,7 @@ export function PlayerFooter() {
               onClick={() => setIsPlaying(!isPlaying)}
               className={classes.controls}
               size={72}
+              disabled={hasJoinedBroadcastRoom ? true : false}
             >
               {isPlaying ? (
                 <IconPlayerPause onClick={stopTrack} size={48} />

@@ -8,18 +8,24 @@ import {
   UnstyledButton,
   SimpleGrid,
   Card,
-  ActionIcon,
+  ScrollArea,
+  Title,
+  Paper,
+  Container,
+  Stack,
 } from "@mantine/core";
 import React, { useEffect, useRef, useState } from "react";
 import {
   socket,
   useAudio,
   IBroadcastRecordingData,
+  API_URL,
 } from "../Context/AudioPlayerContext";
 import { v4 as uuidv4 } from "uuid";
-import { IconRadio, IconUpload } from "@tabler/icons";
-import type { IBroadcastData } from "../Context/AudioPlayerContext";
-import LiveBroadcastingSessions from "./LiveBroadcastingSessions";
+import { IconBroadcast, IconRadio } from "@tabler/icons";
+import { Session } from "@supabase/supabase-js";
+import useSWR from "swr";
+import { useSession } from "@supabase/auth-helpers-react";
 
 const useStyles = createStyles((theme) => ({
   label: {
@@ -35,9 +41,16 @@ const useStyles = createStyles((theme) => ({
   root: {
     marginLeft: "20%",
     marginRight: "20%",
-    marginTop: "5%",
   },
 
+  liveSessionCTA: {
+    marginBottom: theme.spacing.xl,
+    marginTop: theme.spacing.xs,
+  },
+
+  liveSessionContainer: {
+    color: theme.colors.sandyBrown[1],
+  },
   input: {
     marginBottom: theme.spacing.xs,
     padding: theme.spacing.xl,
@@ -96,22 +109,23 @@ const useStyles = createStyles((theme) => ({
   item: {
     display: "flex",
     flexDirection: "column",
-    alignItems: "center",
+    alignItems: "left",
     justifyContent: "center",
-    textAlign: "center",
+    textAlign: "left",
     borderRadius: theme.radius.md,
     fontFamily: `Greycliff CF, ${theme.fontFamily}`,
     fontWeight: 700,
     color:
       theme.colorScheme === "dark"
         ? theme.colors.sandyBrown[8]
-        : theme.colors.sandyBrown[0],
+        : theme.colors.sandyBrown[1],
     height: 90,
     backgroundColor:
       theme.colorScheme === "dark"
         ? theme.colors.persianGreen[6]
         : theme.colors.persianGreen[2],
     transition: "box-shadow 150ms ease, transform 100ms ease",
+    padding: theme.spacing.sm,
 
     "&:hover": {
       boxShadow: `${theme.shadows.md} !important`,
@@ -145,11 +159,27 @@ const useStyles = createStyles((theme) => ({
   },
 }));
 
+const fetcher = (url: string, accessToken: string) =>
+  fetch(url, { headers: { Authorization: "Bearer " + accessToken } }).then(
+    (res) => res.json(),
+  );
+
+export function useLiveBroadcasts(session: Session | null) {
+  const { data, mutate } = useSWR<Array<any>>(
+    [API_URL + "/broadcast", session?.access_token],
+    fetcher,
+  );
+  return {
+    rooms: data,
+    mutate: mutate,
+  };
+}
+
 export function BroadcastPanel() {
   const { classes } = useStyles();
+  const session = useSession();
+  const { rooms, mutate } = useLiveBroadcasts(session);
   const {
-    broadcastRoomId,
-    setBroadcastRoomId,
     joinBroadcastRoom,
     broadcastSessionData,
     setBroadcastSessionData,
@@ -160,18 +190,26 @@ export function BroadcastPanel() {
   const [customBroadcasts, setCustomBroadcasts] = useState<
     IBroadcastRecordingData[] | null
   >(null);
+  const [broadcastTitle, setBroadcastTitle] = useState<string>("");
+  const [broadcastDescription, setBroadcastDescription] = useState<string>("");
+  const [broadcastAuthorNick, setBroadcastAuthorNick] = useState<string>("");
+
   const uploadedBroadcasts = useRef<any[]>([]);
 
-  function prepareBroadcastSession() {
+  async function prepareBroadcastSession() {
     setIsListeningToBroadcast(false);
-    if (broadcastSessionData !== null) {
-      const broadcastSessionRoomName =
-        broadcastSessionData.title + "-" + uuidv4().slice(0, 8);
-      setBroadcastSessionData({
-        ...broadcastSessionData,
-        room: broadcastSessionRoomName,
-      });
-    }
+    const broadcastId = uuidv4();
+
+    const broadcastSessionRoomName =
+      broadcastTitle + "-" + broadcastId.slice(0, 8);
+    setBroadcastSessionData({
+      id: broadcastId,
+      title: broadcastTitle,
+      author: broadcastAuthorNick,
+      description: broadcastDescription,
+      room: broadcastSessionRoomName,
+    });
+    console.log("broadcastSessionData", broadcastSessionData);
   }
 
   useEffect(() => {
@@ -191,50 +229,93 @@ export function BroadcastPanel() {
     };
   });
 
+  const liveSessions = rooms?.map((room) => {
+    return (
+      <UnstyledButton
+        key={room.room}
+        className={classes.item}
+        onClick={() =>
+          joinBroadcastRoom(
+            room.title,
+            room.author,
+            room.description,
+            room.room,
+          )
+        }
+      >
+        <IconBroadcast size={36} />
+        <Text size="md" mt={7}>
+          {room.title}
+        </Text>
+        <Text size="sm" color="#c3824e">
+          {room.author}
+        </Text>
+        <Text color="#223f4b" size="xs" pb="sm">
+          {room.description}
+        </Text>
+      </UnstyledButton>
+    );
+  });
+
   return (
     <>
-      <LiveBroadcastingSessions />
-      <TextInput
-        classNames={{
-          input: classes.input,
-          label: classes.label,
-          root: classes.root,
-        }}
-        label="Join a live broadcast by entering room ID!"
-        placeholder="Paste broadcast room ID here"
-        value={broadcastRoomId !== null ? broadcastRoomId : ""}
-        onChange={(event) => setBroadcastRoomId(event.currentTarget.value)}
-      />
       <Center>
-        <Button
-          type="button"
-          className={classes.button}
-          size="md"
-          onClick={() =>
-            broadcastRoomId !== null ? joinBroadcastRoom(broadcastRoomId) : null
-          }
-        >
-          Join broadcast
-        </Button>
+        <ScrollArea style={{ height: 250 }}>
+          {" "}
+          <Title className={classes.liveSessionContainer}>
+            Current Live Broadcasting Sessions
+          </Title>
+          {liveSessions?.length !== 0 ? (
+            <Container>
+              <Text className={classes.liveSessionCTA} align="center" size="xs">
+                Click on one of the rooms below to join the live broadcasting
+                session!
+              </Text>
+              <Group>{liveSessions}</Group>
+            </Container>
+          ) : (
+            <Title order={2}>There are no live sessions right now.</Title>
+          )}
+        </ScrollArea>
       </Center>
-      <TextInput
-        classNames={{
-          input: classes.input,
-          label: classes.label,
-          root: classes.root,
-        }}
-        label="Start recording by entering session name and generating room name!"
-        placeholder="Enter broadcast session name here"
-        value={broadcastSessionData?.title}
-        onChange={(event) =>
-          setBroadcastSessionData({
-            id: "",
-            title: event.currentTarget.value,
-            author: "Anonymous",
-            room: null,
-          })
-        }
-      />
+      <Stack>
+        <TextInput
+          classNames={{
+            input: classes.input,
+            label: classes.label,
+            root: classes.root,
+          }}
+          placeholder="Enter broadcast session title here"
+          value={broadcastSessionData?.title}
+          onChange={(event) => setBroadcastTitle(event.currentTarget.value)}
+          label="Start your live broadcasting session"
+        />
+
+        <TextInput
+          classNames={{
+            input: classes.input,
+            label: classes.label,
+            root: classes.root,
+          }}
+          placeholder="Enter your nickname here"
+          value={broadcastSessionData?.author}
+          onChange={(event) =>
+            setBroadcastAuthorNick(event.currentTarget.value)
+          }
+        />
+        <TextInput
+          classNames={{
+            input: classes.input,
+            label: classes.label,
+            root: classes.root,
+          }}
+          placeholder="Enter short broadcast description here"
+          value={broadcastSessionData?.title}
+          onChange={(event) =>
+            setBroadcastDescription(event.currentTarget.value)
+          }
+        />
+      </Stack>
       <Center>
         <Button
           type="button"
@@ -242,14 +323,13 @@ export function BroadcastPanel() {
           size="md"
           onClick={prepareBroadcastSession}
         >
-          Generate room name
+          Generate broadcast session
         </Button>
       </Center>
       {isListeningToBroadcast ? null : (
         <Center>
-          <Text className={classes.label}>
-            Your session room name: {broadcastSessionData?.room}
-          </Text>
+          <Text className={classes.label}>Your session room name</Text>
+          <Text>{broadcastSessionData?.room}</Text>
         </Center>
       )}
       <Center>
@@ -276,7 +356,7 @@ export function BroadcastPanel() {
               <Text className={classes.label}>
                 {" "}
                 {`
-              No recorder sessions yet. Record your session by entering a session name and generating a room name!
+              No recordings in this session yet. Record your session by entering a session name and generating a room name!
               `}
               </Text>
             </Center>
