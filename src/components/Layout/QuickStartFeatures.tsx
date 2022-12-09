@@ -1,8 +1,6 @@
 /* eslint-disable quotes */
 import {
   createStyles,
-  Badge,
-  Group,
   Title,
   Text,
   Card,

@@ -43,6 +43,14 @@ const useStyles = createStyles((theme) => ({
     marginRight: "20%",
   },
 
+  liveSessionCTA: {
+    marginBottom: theme.spacing.xl,
+    marginTop: theme.spacing.xs,
+  },
+
+  liveSessionContainer: {
+    color: theme.colors.sandyBrown[1],
+  },
   input: {
     marginBottom: theme.spacing.xs,
     padding: theme.spacing.xl,
@@ -101,23 +109,23 @@ const useStyles = createStyles((theme) => ({
   item: {
     display: "flex",
     flexDirection: "column",
-    alignItems: "center",
+    alignItems: "left",
     justifyContent: "center",
-    textAlign: "center",
+    textAlign: "left",
     borderRadius: theme.radius.md,
     fontFamily: `Greycliff CF, ${theme.fontFamily}`,
     fontWeight: 700,
     color:
       theme.colorScheme === "dark"
         ? theme.colors.sandyBrown[8]
-        : theme.colors.sandyBrown[0],
+        : theme.colors.sandyBrown[1],
     height: 90,
     backgroundColor:
       theme.colorScheme === "dark"
         ? theme.colors.persianGreen[6]
         : theme.colors.persianGreen[2],
     transition: "box-shadow 150ms ease, transform 100ms ease",
-    padding: theme.spacing.md,
+    padding: theme.spacing.sm,
 
     "&:hover": {
       boxShadow: `${theme.shadows.md} !important`,
@@ -239,8 +247,12 @@ export function BroadcastPanel() {
         <Text size="md" mt={7}>
           {room.title}
         </Text>
-        <Text size="md">{room.author}</Text>
-        <Text size="xs">{room.description}</Text>
+        <Text size="sm" color="#c3824e">
+          {room.author}
+        </Text>
+        <Text color="#223f4b" size="xs" pb="sm">
+          {room.description}
+        </Text>
       </UnstyledButton>
     );
   });
@@ -250,43 +262,22 @@ export function BroadcastPanel() {
       <Center>
         <ScrollArea style={{ height: 250 }}>
           {" "}
-          <Title>Current Live Broadcasting Sessions</Title>
+          <Title className={classes.liveSessionContainer}>
+            Current Live Broadcasting Sessions
+          </Title>
           {liveSessions?.length !== 0 ? (
             <Container>
-              <Text>
-                Click on one of the room IDs below to join the live broadcasting
+              <Text className={classes.liveSessionCTA} align="center" size="xs">
+                Click on one of the rooms below to join the live broadcasting
                 session!
               </Text>
-              {liveSessions}
+              <Group>{liveSessions}</Group>
             </Container>
           ) : (
             <Title order={2}>There are no live sessions right now.</Title>
           )}
         </ScrollArea>
       </Center>
-      {/* <TextInput
-        classNames={{
-          input: classes.input,
-          label: classes.label,
-          root: classes.root,
-        }}
-        label="Join a live broadcast by entering room ID!"
-        placeholder="Paste broadcast room ID here"
-        value={broadcastRoomId !== null ? broadcastRoomId : ""}
-        onChange={(event) => setBroadcastRoomId(event.currentTarget.value)}
-      />
-      <Center>
-        <Button
-          type="button"
-          className={classes.button}
-          size="md"
-          onClick={() =>
-            broadcastRoomId !== null ? joinBroadcastRoom(broadcastRoomId) : null
-          }
-        >
-          Join broadcast
-        </Button>
-      </Center> */}
       <Stack>
         <TextInput
           classNames={{
@@ -297,7 +288,9 @@ export function BroadcastPanel() {
           placeholder="Enter broadcast session title here"
           value={broadcastSessionData?.title}
           onChange={(event) => setBroadcastTitle(event.currentTarget.value)}
+          label="Start your live broadcasting session"
         />
+
         <TextInput
           classNames={{
             input: classes.input,

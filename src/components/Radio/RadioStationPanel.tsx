@@ -185,7 +185,7 @@ export function RadioStationBrowser() {
           root: classes.root,
         }}
         label="Or you can add your own online radio station!"
-        placeholder="Paste a link to radio station here"
+        placeholder="Paste an MP3 link to radio station here"
         value={customStationURL ? customStationURL : ""}
         onChange={(event) => setCustomStationURL(event.currentTarget.value)}
       />
