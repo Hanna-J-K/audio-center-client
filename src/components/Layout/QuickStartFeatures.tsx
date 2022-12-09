@@ -22,7 +22,7 @@ const mockdata = [
   {
     title: "Queue",
     description:
-      "Here you can manage your queue by adding songs, skipping back or forward. You can search for available song via title, artist or album.",
+      "Here you can listen to music and manage your queue! You can search for available song via title or artist.",
     icon: IconPlaylist,
     link: "/queue",
   },
