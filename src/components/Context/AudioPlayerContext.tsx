@@ -8,6 +8,7 @@ import React, {
 } from "react";
 import { io } from "socket.io-client";
 import axios from "axios";
+import invariant from "tiny-invariant";
 
 export const API_URL =
   process.env.NODE_ENV === "production"
@@ -42,6 +43,7 @@ export interface IBroadcastData {
   id: string;
   title: string;
   author: string;
+  description: string;
   room: string | null;
 }
 
@@ -80,10 +82,13 @@ interface IAudioPlayerContext {
   switchFromRadioToQueue: () => void;
   isListeningToBroadcast: boolean;
   setIsListeningToBroadcast: (isListeningToBroadcast: boolean) => void;
-  broadcastRoomId: string | null;
-  setBroadcastRoomId: (broadcastRoomId: string) => void;
   playBroadcast: (title: string, author: string, broadcastURL: string) => void;
-  joinBroadcastRoom: (broadcastRoomId: string) => void;
+  joinBroadcastRoom: (
+    broadcastTitle: string,
+    broadcastAuthor: string,
+    broadcastDescription: string,
+    broadcastRoomId: string,
+  ) => void;
   isRecording: boolean;
   setIsRecording: (isRecording: boolean) => void;
   startRecording: () => void;
@@ -95,6 +100,9 @@ interface IAudioPlayerContext {
   recordedAudioURL: string | null;
   setRecordedAudioURL: (recordedAudioURL: string | null) => void;
   broadcastAudioURL: string | null;
+  hasJoinedBroadcastRoom: boolean;
+  setHasJoinedBroadcastRoom: (hasJoinedBroadcastRoom: boolean) => void;
+  liveSessionData: IBroadcastData | null;
 }
 
 const AudioPlayerContext = createContext<IAudioPlayerContext | undefined>(
@@ -118,7 +126,6 @@ const AudioContextProvider = ({ children }: any) => {
   const radioStationAudio = useRef<HTMLAudioElement | null>(null);
   const [customStationURL, setCustomStationURL] = useState<string | null>(null);
   const [isListeningToBroadcast, setIsListeningToBroadcast] = useState(true);
-  const [broadcastRoomId, setBroadcastRoomId] = useState<string | null>(null);
   const [isRecording, setIsRecording] = useState(false);
   const recordedChunks = useRef<Blob[]>([]);
   const [recordingStream, setRecordingStream] = useState<MediaRecorder | null>(
@@ -134,7 +141,11 @@ const AudioContextProvider = ({ children }: any) => {
   const [recordedAudioURL, setRecordedAudioURL] = useState<string | null>(null);
   const [broadcastSessionData, setBroadcastSessionData] =
     useState<IBroadcastData | null>(null);
-
+  const [hasJoinedBroadcastRoom, setHasJoinedBroadcastRoom] =
+    useState<boolean>(false);
+  const [liveSessionData, setLiveSessionData] = useState<IBroadcastData | null>(
+    null,
+  );
   useEffect(() => {
     if (!window) {
       return;
@@ -205,6 +216,7 @@ const AudioContextProvider = ({ children }: any) => {
   }, [trackHistory]);
 
   const playTrack = useCallback(() => {
+    setHasJoinedBroadcastRoom(false);
     if (nowPlayingInfo?.radioStation) {
       if (radioStationAudio.current !== null) {
         radioStationAudio.current.play();
@@ -347,12 +359,26 @@ const AudioContextProvider = ({ children }: any) => {
     setIsListeningToBroadcast(true);
   }
 
-  function joinBroadcastRoom(broadcastRoomId: string) {
+  function joinBroadcastRoom(
+    broadcastTitle: string,
+    broadcastAuthor: string,
+    broadcastDescription: string,
+    broadcastRoomId: string,
+  ) {
+    stopTrack();
     setIsListeningToBroadcast(true);
+    setHasJoinedBroadcastRoom(true);
     if (broadcastRoomId !== null && broadcastMediaSource.current !== null) {
       setBroadcastAudioURL(
         window.URL.createObjectURL(broadcastMediaSource.current),
       );
+      setLiveSessionData({
+        id: broadcastRoomId,
+        title: broadcastTitle,
+        author: broadcastAuthor,
+        description: broadcastDescription,
+        room: broadcastRoomId,
+      });
       const userSocketId = socket.id;
       socket.emit("join-broadcast-room", broadcastRoomId, userSocketId);
     }
@@ -376,7 +402,7 @@ const AudioContextProvider = ({ children }: any) => {
   }, [broadcastAudioURL, broadcastChunksQueue]);
 
   function startRecording() {
-    socket.emit("publish-broadcast-session-room", broadcastSessionData?.room);
+    socket.emit("publish-broadcast-session-room", broadcastSessionData);
     navigator.mediaDevices
       .getUserMedia({ video: false, audio: true })
       .then((stream) => {
@@ -424,6 +450,7 @@ const AudioContextProvider = ({ children }: any) => {
         track.stop();
       });
     }
+    socket.emit("stop-broadcast-session-room", broadcastSessionData);
     blob.current = new Blob(recordedChunks.current, {
       type: "audio/webm",
     });
@@ -455,8 +482,6 @@ const AudioContextProvider = ({ children }: any) => {
         switchFromRadioToQueue,
         isListeningToBroadcast,
         setIsListeningToBroadcast,
-        broadcastRoomId,
-        setBroadcastRoomId,
         playBroadcast,
         joinBroadcastRoom,
         isRecording,
@@ -468,6 +493,9 @@ const AudioContextProvider = ({ children }: any) => {
         recordedAudioURL,
         setRecordedAudioURL,
         broadcastAudioURL,
+        hasJoinedBroadcastRoom,
+        setHasJoinedBroadcastRoom,
+        liveSessionData,
       }}
     >
       {children}
