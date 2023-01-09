@@ -143,7 +143,7 @@ const useStyles = createStyles((theme) => ({
 }));
 
 const addCustomRadioStation = (url: string, accessToken: string) => {
-  socket.emit("add-custom-radio-station", { url, accessToken });
+  socket.emit("add-custom-radio-station", url, accessToken);
 };
 
 export function RadioStationBrowser() {
